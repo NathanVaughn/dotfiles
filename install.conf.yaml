@@ -5,7 +5,7 @@
 - clean: ['~']
 
 - link:
-    ~/.alias: alias
+    ~/.aliases: aliases
     ~/.bash_profile: bash_profile
     ~/.dircolors: dircolors
     ~/.gitconfig: gitconfig
