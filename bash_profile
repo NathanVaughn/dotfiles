@@ -18,3 +18,11 @@ export PS1="\[\033[38;5;196m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\]@\[$(tput sgr0)
 # alias ls='ls $LS_OPTIONS'
 
 eval $(dircolors -b $HOME/.dircolors)
+
+# Avoid succesive duplicates in the bash command history.
+export HISTCONTROL=ignoredups
+
+# Add bash aliases.
+if [ -f ~/.aliases ]; then
+    source ~/.aliases
+fi
