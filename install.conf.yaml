@@ -5,10 +5,14 @@
 - clean: ['~']
 
 - link:
-    ~/.aliases: aliases
-    ~/.bash_profile: bash_profile
-    ~/.dircolors: dircolors
-    ~/.gitconfig: gitconfig
+    ~/.aliases: aliases:
+        force: true
+    ~/.bash_profile: bash_profile:
+        force: true
+    ~/.dircolors: dircolors:
+        force: true
+    ~/.gitconfig: gitconfig:
+        force: true
 
 - shell:
   - [git submodule update --init --recursive, Installing submodules]
