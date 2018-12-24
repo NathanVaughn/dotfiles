@@ -1,0 +1,14 @@
+- defaults:
+    link:
+      relink: true
+
+- clean: ['~']
+
+- link:
+    ~/.alias: alias
+    ~/.bash_profile: bash_profile
+    ~/.dircolors: dircolors
+    ~/.gitconfig: gitconfig
+
+- shell:
+  - [git submodule update --init --recursive, Installing submodules]
