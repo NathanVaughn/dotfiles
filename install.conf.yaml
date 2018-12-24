@@ -5,13 +5,17 @@
 - clean: ['~']
 
 - link:
-    ~/.aliases: aliases:
+    ~/.aliases:
+        path: aliases
         force: true
-    ~/.bash_profile: bash_profile:
+    ~/.bash_profile: 
+        path: bash_profile
         force: true
-    ~/.dircolors: dircolors:
+    ~/.dircolors: 
+        path: dircolors
         force: true
-    ~/.gitconfig: gitconfig:
+    ~/.gitconfig: 
+        path: gitconfig
         force: true
 
 - shell:
