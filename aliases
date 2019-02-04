@@ -1,3 +1,4 @@
 alias clc='clear'
 alias cls='clear'
 alias ipconfig='ifconfig'
+alias python='python3'
