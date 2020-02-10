@@ -17,7 +17,7 @@
     ~/.gitconfig: 
         path: gitconfig
         force: true
-    ~./.tmux.conf:
+    ~/.tmux.conf:
         path: tmux.conf
         force: true
 - shell:
