@@ -19,6 +19,6 @@
         force: true
     ~./.tmux.conf:
         path: tmux.conf
-	force: true
+        force: true
 - shell:
   - [git submodule update --init --recursive, Installing submodules]
