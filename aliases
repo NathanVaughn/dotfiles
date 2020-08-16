@@ -1,5 +1,6 @@
 alias clc='clear'
 alias cls='clear'
+alias ll='ls -la'
 alias ipconfig='ifconfig'
 alias python='python3'
 alias pip='pip3'
