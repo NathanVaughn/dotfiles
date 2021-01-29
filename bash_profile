@@ -1,22 +1,15 @@
-# .bash_profile
+# ~/.bash_profile: executed by the command interpreter for login shells.
 
-# User specific environment and startup programs
-PATH=$PATH:$HOME/.local/bin:$HOME/bin
+# Because of this file's existence, neither ~/.bash_login nor ~/.profile
+# will be sourced.
 
-export PATH
+# See /usr/share/doc/bash/examples/startup-files for examples.
+# The files are located in the bash-doc package.
 
-export PS1="\[\033[38;5;196m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\]@\[$(tput sgr0)\]\[\033[38;5;40m\]\h\[$(tput sgr0)\]\[\033[38;5;15m\]:\[$(tput sgr0)\]\[\033[38;5;87m\][\[$(tput sgr0)\]\[\033[38;5;39m\]\w\[$(tput sgr0)\]\[\033[38;5;51m\]]\[$(tput sgr0)\]\[\033[38;5;226m\]\\$\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]"
+# Because ~/.profile isn't invoked if this files exists,
+# we must source ~/.profile to get its settings:
+if [ -r ~/.profile ]; then . ~/.profile; fi
 
-# export LS_OPTIONS='--color=auto'
-# eval "$(dircolors -b)"
-# alias ls='ls $LS_OPTIONS'
-
-eval $(dircolors -b $HOME/.dircolors)
-
-# Avoid succesive duplicates in the bash command history.
-export HISTCONTROL=ignoredups
-
-# Add bash aliases.
-if [ -f ~/.aliases ]; then
-    source ~/.aliases
-fi
+# The following sources ~/.bashrc in the interactive login case,
+# because .bashrc isn't sourced for interactive login shells:
+case "$-" in *i*) if [ -r ~/.bashrc ]; then . ~/.bashrc; fi;; esac
