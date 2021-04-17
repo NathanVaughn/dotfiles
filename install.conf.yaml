@@ -28,3 +28,4 @@
         force: true
 - shell:
   - [git submodule update --init --recursive, Installing submodules]
+  - [curl -fsSL https://starship.rs/install.sh | bash, Installing Starship]

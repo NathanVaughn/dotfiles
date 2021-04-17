@@ -78,3 +78,6 @@ fi
 
 # for wsl
 cd ~
+
+# for starship
+eval "$(starship init bash)"
