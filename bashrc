@@ -76,8 +76,5 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-# for wsl
-cd ~
-
 # for starship
 eval "$(starship init bash)"
