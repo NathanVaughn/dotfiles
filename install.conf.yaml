@@ -28,6 +28,7 @@
         force: true
 
 - shell:
+  - [git config --global credential.helper store, Configuring git to store credentials]
   - [git submodule update --init --recursive, Installing submodules]
   - [curl -fsSL https://starship.rs/install.sh -o installstarship.sh && chmod +x installstarship.sh && bash ./installstarship.sh -f && rm installstarship.sh, Installing Starship]
   - [sudo apt update && sudo apt install bat -y, Installing batcat]
