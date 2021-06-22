@@ -13,4 +13,4 @@ alias activate='source ./.venv/bin/activate'
 alias venv='source ./.venv/bin/activate'
 
 alias please='sudo'
-alias ugh='sudo !!'
+alias ugh='sudo $(history -p !!)'
