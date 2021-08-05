@@ -5,6 +5,10 @@ alias ll='ls -la'
 alias bat='batcat'
 alias w='watch'
 
+alias ..='cd ..'
+alias ....='cd ../..'
+alias ......='cd ../../..'
+
 alias ipconfig='ifconfig'
 
 alias python='python3'
