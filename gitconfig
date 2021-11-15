@@ -7,3 +7,6 @@
 	changed = red bold strike
 	untracked = cyan
 	branch = yellow black bold ul
+
+[help]
+	autoCorrect = prompt
