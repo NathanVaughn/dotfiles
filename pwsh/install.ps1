@@ -8,7 +8,7 @@ New-Item $tmpdir -Type Directory -Force
 
 # download url
 $zipfile = Join-Path $tmpdir "CascadiaCode.zip"
-Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/CascadiaCode.zip" -OutFile $zipfile
+Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip" -OutFile $zipfile
 
 # extract zip
 Expand-Archive $zipfile -DestinationPath $tmpdir -Force
