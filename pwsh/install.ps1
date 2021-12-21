@@ -24,3 +24,6 @@ Remove-Item $tmpdir -Recurse -Force
 # copy powershell profile
 $docs = [Environment]::GetFolderPath("MyDocuments")
 Copy-Item "Microsoft.PowerShell_profile.ps1" -Destination (Join-Path $docs "PowerShell")
+
+# copy windows terminal settings
+Copy-Item wt_settings.json -Destination ~\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
