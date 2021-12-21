@@ -76,5 +76,5 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-# for starship
-eval "$(starship init bash)"
+# for oh-my-posh
+eval "$(oh-my-posh --init --shell bash --config ~/.poshthemes/atomic.omp.json)"
