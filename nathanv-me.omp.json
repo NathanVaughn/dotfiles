@@ -78,7 +78,7 @@
                 {
                     "type": "session",
                     "style": "plain",
-                    "foreground": "#dadada",
+                    "foreground": "#ffffff",
                     "leading_diamond": "",
                     "properties": {
                         "prefix": "",
@@ -99,7 +99,7 @@
                 {
                     "type": "session",
                     "style": "plain",
-                    "foreground": "#dadada",
+                    "foreground": "#ffffff",
                     "properties": {
                         "prefix": "",
                         "template": "{{ .ComputerName }}",
