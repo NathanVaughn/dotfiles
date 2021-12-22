@@ -1,5 +1,6 @@
 New-Alias activate ./.venv/Scripts/activate
 New-Alias ifconfig ipconfig
+function venv { python -m venv .venv }
 
 # disable virtual environment prompt as theme already shows it
 $env:VIRTUAL_ENV_DISABLE_PROMPT=1
