@@ -1,0 +1,124 @@
+{
+    "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+    "console_title": true,
+    "console_title_style": "template",
+    "console_title_template": "{{if .Root}}(Admin) {{end}}{{.Folder}}",
+    "blocks": [
+        {
+            "type": "prompt",
+            "alignment": "left",
+            "segments": [
+                {
+                    "type": "path",
+                    "style": "plain",
+                    "foreground": "#2dd7dd",
+                    "properties": {
+                        "prefix": "\uE5FF ",
+                        "style": "full",
+                        "folder_separator_icon": "/"
+                    }
+                },
+                {
+                    "type": "git",
+                    "style": "plain",
+                    "foreground": "#3A86FF",
+                    "properties": {
+                        "fetch_status": true,
+                        "fetch_stash_count": true,
+                        "fetch_upstream_icon": false,
+                        "template": "{{ .HEAD }}{{ if .Staging.Changed }} \uF046 {{ .Staging.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Working.Changed }} \uF044 {{ .Working.String }}{{ end }}{{ if gt .StashCount 0 }} \uF692 {{ .StashCount }}{{ end }}",
+                        "prefix": ""
+                    }
+                },
+                {
+                    "type": "executiontime",
+                    "style": "plain",
+                    "foreground": "#9e64c2",
+                    "properties": {
+                        "threshold": 1,
+                        "style": "austin",
+                        "prefix": " \ufbab "
+                    }
+                }
+            ]
+        },
+        {
+            "type": "prompt",
+            "alignment": "right",
+            "segments": [
+                {
+                    "type": "python",
+                    "style": "diamond",
+                    "leading_diamond": " \uE0B6",
+                    "trailing_diamond": "\uE0B4",
+                    "foreground": "#FFE873",
+                    "background": "#306998",
+                    "properties": {
+                        "prefix": "\uE235 ",
+                        "postfix": ""
+                    }
+                }
+            ]
+        },
+        {
+            "type": "prompt",
+            "alignment": "left",
+            "newline": true,
+            "segments": [
+                {
+                    "type": "root",
+                    "style": "plain",
+                    "foreground": "#f1184c",
+                    "properties": {
+                        "prefix": "",
+                        "root_icon": "\uF0E7",
+                        "postfix": " "
+                    }
+                },
+                {
+                    "type": "session",
+                    "style": "plain",
+                    "foreground": "#dadada",
+                    "leading_diamond": "",
+                    "properties": {
+                        "prefix": "",
+                        "template": "{{ .UserName }}",
+                        "postfix": ""
+                    }
+                },
+                {
+                    "type": "text",
+                    "style": "plain",
+                    "foreground": "#ffee00",
+                    "properties": {
+                        "prefix": "",
+                        "text": "@",
+                        "postfix": ""
+                    }
+                },
+                {
+                    "type": "session",
+                    "style": "plain",
+                    "foreground": "#dadada",
+                    "properties": {
+                        "prefix": "",
+                        "template": "{{ .ComputerName }}",
+                        "postfix": ""
+                    }
+                },
+                {
+                    "type": "exit",
+                    "style": "plain",
+                    "foreground": "#33DD2D",
+                    "foreground_templates": [
+                        "{{ if gt .Code 0 }}#f1184c{{ end }}"
+                    ],
+                    "properties": {
+                        "always_enabled": true,
+                        "template": "\u279C "
+                    }
+                }
+            ]
+        }
+    ]
+}

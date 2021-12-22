@@ -77,4 +77,4 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
 fi
 
 # for oh-my-posh
-eval "$(oh-my-posh --init --shell bash --config ~/.poshthemes/atomic.omp.json)"
+eval "$(oh-my-posh --init --shell bash --config ~/.poshthemes/nathanv-me.omp.json)"

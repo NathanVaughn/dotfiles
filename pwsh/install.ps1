@@ -1,5 +1,19 @@
+param (
+    [parameter(Mandatory=$true,
+    ParameterSetName="appdataset")]
+    [switch]
+    $appdata,
+
+    [parameter(Mandatory=$true,
+    ParameterSetName="progfiles")]
+    [switch]
+    $progfiles
+ )
+
+# install oh-my-posh
 winget install JanDeDobbeleer.OhMyPosh
 
+# install fonts
 # magic folder
 $fontdir = (New-Object -ComObject Shell.Application).Namespace(0x14)
 
@@ -25,5 +39,13 @@ Remove-Item $tmpdir -Recurse -Force
 $docs = [Environment]::GetFolderPath("MyDocuments")
 Copy-Item "Microsoft.PowerShell_profile.ps1" -Destination (Join-Path $docs "PowerShell")
 
+# copy oh-my-posh theme
+Copy-Item "../nathanv-me.omp.json" -Destination ~\AppData\Local\Programs\oh-my-posh\themes\
+
 # copy windows terminal settings
-Copy-Item wt_settings.json -Destination ~\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
+if ($appdata) {
+    $src = "wt_settings_appdata.json"
+} elseif ($progfiles) {
+    $src = "wt_settings_progfiles.json"
+}
+Copy-Item $src -Destination ~\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
