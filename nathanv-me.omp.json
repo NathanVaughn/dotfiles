@@ -107,6 +107,14 @@
                     }
                 },
                 {
+                    "type": "os",
+                    "style": "plain",
+                    "foreground": "#f18459",
+                    "properties": {
+                        "postfix": ""
+                    }
+                },
+                {
                     "type": "exit",
                     "style": "plain",
                     "foreground": "#33DD2D",
