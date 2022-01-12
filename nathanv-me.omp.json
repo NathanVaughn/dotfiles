@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
     "console_title": true,
     "console_title_style": "template",
-    "console_title_template": "{{if .Root}}(Admin) {{end}}{{.Folder}}",
+    "console_title_template": "{{if .Root}}(Admin) {{end}}{{.User}}@{{.Host}} {{.Folder}}",
     "blocks": [
         {
             "type": "prompt",
@@ -37,7 +37,7 @@
                     "properties": {
                         "threshold": 1,
                         "style": "austin",
-                        "prefix": " \ufbab "
+                        "prefix": "\uF017 "
                     }
                 }
             ]
@@ -76,6 +76,14 @@
                     }
                 },
                 {
+                    "type": "os",
+                    "style": "plain",
+                    "foreground": "#f18459",
+                    "properties": {
+                        "prefix": ""
+                    }
+                },
+                {
                     "type": "session",
                     "style": "plain",
                     "foreground": "#ffffff",
@@ -107,14 +115,6 @@
                     }
                 },
                 {
-                    "type": "os",
-                    "style": "plain",
-                    "foreground": "#f18459",
-                    "properties": {
-                        "postfix": ""
-                    }
-                },
-                {
                     "type": "exit",
                     "style": "plain",
                     "foreground": "#33DD2D",
@@ -123,7 +123,7 @@
                     ],
                     "properties": {
                         "always_enabled": true,
-                        "template": "\u279C "
+                        "template": ">>"
                     }
                 }
             ]
