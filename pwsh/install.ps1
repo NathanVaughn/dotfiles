@@ -1,6 +1,6 @@
 param (
     [parameter(Mandatory=$true,
-    ParameterSetName="appdataset")]
+    ParameterSetName="appdata")]
     [switch]
     $appdata,
 

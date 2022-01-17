@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
     "console_title": true,
     "console_title_style": "template",
-    "console_title_template": "{{if .Root}}(Admin) {{end}}{{.User}}@{{.Host}} {{.Folder}}",
+    "console_title_template": "{{if .Root}}(Admin) {{end}}{{.UserName}}@{{.HostName}} {{.Folder}}",
     "blocks": [
         {
             "type": "prompt",
@@ -110,7 +110,7 @@
                     "foreground": "#ffffff",
                     "properties": {
                         "prefix": "",
-                        "template": "{{ .ComputerName }}",
+                        "template": "{{ .HostName }}",
                         "postfix": ""
                     }
                 },
