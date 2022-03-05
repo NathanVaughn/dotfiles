@@ -26,6 +26,10 @@
     ~/.tmux.conf:
         path: tmux.conf
         force: true
+    ~/.config/pip/pip.conf:
+        create: true
+        path: pip.conf
+        force: false
 
 - shell:
   - [git config --global credential.helper store, Configuring git to store credentials]

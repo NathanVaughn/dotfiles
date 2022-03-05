@@ -40,7 +40,7 @@ $docs = [Environment]::GetFolderPath("MyDocuments")
 Copy-Item "Microsoft.PowerShell_profile.ps1" -Destination (Join-Path $docs "PowerShell")
 
 # copy oh-my-posh theme
-Copy-Item "../nathanv-me.omp.json" -Destination ~\AppData\Local\Programs\oh-my-posh\themes\
+Copy-Item "../nathanv-me.omp.json" -Destination "$env:LOCALAPPDATA\Programs\oh-my-posh\themes\"
 
 # copy windows terminal settings
 if ($appdata) {
@@ -48,4 +48,12 @@ if ($appdata) {
 } elseif ($progfiles) {
     $src = "wt_settings_progfiles.json"
 }
-Copy-Item $src -Destination ~\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
+Copy-Item $src -Destination "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+
+# copy pip config
+if (! Test-Path "$env:APPDATA\pip") {
+    New-Item "$env:APPDATA\pip" -ItemType Directory
+}
+if (! Test-Path "$env:APPDATA\pip\pip.ini") {
+    Copy-Item pip.ini -Destination "$env:APPDATA\pip\pip.ini"
+}
