@@ -51,9 +51,9 @@ if ($appdata) {
 Copy-Item $src -Destination "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 
 # copy pip config
-if (! Test-Path "$env:APPDATA\pip") {
+if (-Not (Test-Path "$env:APPDATA\pip")) {
     New-Item "$env:APPDATA\pip" -ItemType Directory
 }
-if (! Test-Path "$env:APPDATA\pip\pip.ini") {
+if (-Not (Test-Path "$env:APPDATA\pip\pip.ini")) {
     Copy-Item pip.ini -Destination "$env:APPDATA\pip\pip.ini"
 }
