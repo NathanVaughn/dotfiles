@@ -1,7 +1,14 @@
+del alias:clc -Force
+
 New-Alias activate ./.venv/Scripts/activate
 New-Alias ifconfig ipconfig
+New-Alias clc clear
+New-Alias ll ls
+
 function guid { [guid]::NewGuid().ToString() }
 function venv { python -m venv .venv }
+function rm-rf { Remove-Item -Recurse -Force $args }
+function sudo { Start-Process powershell -Verb runAs $args }
 
 # disable virtual environment prompt as theme already shows it
 $env:VIRTUAL_ENV_DISABLE_PROMPT=1
