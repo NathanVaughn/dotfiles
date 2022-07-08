@@ -21,7 +21,7 @@
         path: dircolors
         force: true
     ~/.gitconfig:
-        path: gitconfig
+        path: ../gitconfig
         force: false
     ~/.tmux.conf:
         path: tmux.conf

@@ -57,3 +57,8 @@ if (-Not (Test-Path "$env:APPDATA\pip")) {
 if (-Not (Test-Path "$env:APPDATA\pip\pip.ini")) {
     Copy-Item pip.ini -Destination "$env:APPDATA\pip\pip.ini"
 }
+
+# copy git config
+if (-Not (Test-Path "$HOME\.gitconfig")) {
+    Copy-Item "../gitconfig" -Destination "$HOME\.gitconfig"
+}

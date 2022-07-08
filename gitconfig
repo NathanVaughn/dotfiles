@@ -2,6 +2,9 @@
 	email = nvaughn51@gmail.com
 	name = Nathan Vaughn
 
+[init]
+	defaultBranch = main
+
 [color "status"]
 	added = green bold
 	changed = red bold strike
@@ -10,3 +13,6 @@
 
 [help]
 	autoCorrect = prompt
+
+[core]
+	fsmonitor = true
