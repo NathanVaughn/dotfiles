@@ -6,7 +6,7 @@
 
 ```bash
 git clone https://github.com/NathanVaughn/dotfiles.git
-cd dotfiles/linux
+cd dotfiles/bash
 chmod +x ./install
 ./install
 source ~/.bash_profile
