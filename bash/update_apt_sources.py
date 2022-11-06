@@ -9,7 +9,7 @@ def process_line(line: str) -> Optional[str]:
     line = line.lstrip()
 
     # skip if the line is commented out
-    if line[0] == "#":
+    if not line or line[0] == "#":
         return
 
     chunks = line.split()
