@@ -26,7 +26,15 @@ def process_line(line: str) -> Optional[str]:
 
     # rewrite url
     print(f"\t Rewriting {url}")
-    new_url = f'https://pkgs.nthnv.me/repository/{url.split("://")[1].replace("/", "-")}_{distro}'
+    new_url = (
+        f'https://pkgs.nthnv.me/repository/{url.split("://")[1].replace("/", "-")}'
+    )
+
+    if not new_url.endswith("/"):
+        new_url += "/"
+
+    if distro != "/":
+        new_url = f"{new_url}_{distro}"
 
     # reassemble
     return (
