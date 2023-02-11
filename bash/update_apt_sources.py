@@ -30,11 +30,11 @@ def process_line(line: str) -> Optional[str]:
         f'https://pkgs.nthnv.me/repository/{url.split("://")[1].replace("/", "-")}'
     )
 
-    if not new_url.endswith("/"):
-        new_url += "/"
-
     if distro != "/":
         new_url = f"{new_url}_{distro}"
+
+    if not new_url.endswith("/"):
+        new_url += "/"
 
     # reassemble
     return (
