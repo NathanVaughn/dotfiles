@@ -131,7 +131,7 @@ def set_git_config_key_value(key: str, value: str) -> None:
 
     cmd = [w("git"), "config", "--global", key, value]
     if HAS_SUDO:
-        cmd = ["sudo", "-u", os.getlogin(), "-i"] + cmd
+        cmd = ["sudo", "-u", os.environ["SUDO_USER"], "-i"] + cmd
 
     subprocess.check_call(cmd)
 
