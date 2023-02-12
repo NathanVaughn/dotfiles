@@ -305,6 +305,15 @@ def main() -> None:
     if get_response("install npm settings"):
         install_npm_settings()
 
+    if IS_WINDOWS:
+        print(
+            f"{GREEN}Done.{NC} Run {BOLD}. $PROFILE{NC} to refresh your PowerShell profile."
+        )
+    elif IS_LINUX:
+        print(
+            f"{GREEN}Done.{NC} Run {BOLD}source ~/.bash_profile{NC} to refresh your Bash profile."
+        )
+
 
 if __name__ == "__main__":
     main()
