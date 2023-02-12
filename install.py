@@ -33,6 +33,9 @@ HAS_SUDO = False
 if IS_LINUX:
     HAS_SUDO = os.geteuid() == 0
 
+    if HAS_SUDO:
+        HOME_DIR = os.path.join("/home/", os.getlogin())
+
 if IS_WINDOWS:
     APPDATA_DIR = os.environ["APPDATA"]
     LOCALAPPDATA_DIR = os.environ["LOCALAPPDATA"]
@@ -178,7 +181,8 @@ def install_bash_settings() -> None:
         src = os.path.join(LINUX_DIR, file)
         target = os.path.join(HOME_DIR, file)
 
-        os.remove(target)
+        if os.path.isfile(target):
+            os.remove(target)
 
         print(f"Linking {src} to {target}")
         os.symlink(src, target)
