@@ -105,12 +105,6 @@ def install_powershell_profile() -> None:
     print(f"Installed PowerShell profile to {target}")
 
 
-def set_git_config_key_value(key: str, value: str) -> None:
-    print(f"Configuring git {key}")
-
-    subprocess.check_call([w("git"), "config", "--global", key, value])
-
-
 def install_apt_package(package: str) -> None:
     global APT_UPDATED
 
@@ -130,6 +124,16 @@ def rewrite_apt_sources() -> None:
     subprocess.check_call(
         [sys.executable, os.path.join(LINUX_DIR, "rewrite_apt_sources.py")]
     )
+
+
+def set_git_config_key_value(key: str, value: str) -> None:
+    print(f"Configuring git {key}")
+
+    cmd = [w("git"), "config", "--global", key, value]
+    if HAS_SUDO:
+        cmd = ["sudo", "-u", os.getlogin(), "-i"] + cmd
+
+    subprocess.check_call(cmd)
 
 
 def set_git_config(email: bool, gpg: bool) -> None:
@@ -181,7 +185,7 @@ def install_bash_settings() -> None:
         src = os.path.join(LINUX_DIR, file)
         target = os.path.join(HOME_DIR, file)
 
-        if os.path.isfile(target):
+        if os.path.isfile(target) or os.path.islink(target):
             os.remove(target)
 
         print(f"Linking {src} to {target}")
