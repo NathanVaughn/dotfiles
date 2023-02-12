@@ -34,7 +34,7 @@ if IS_LINUX:
     HAS_SUDO = os.geteuid() == 0
 
     if HAS_SUDO:
-        HOME_DIR = os.path.join("/home/", os.getlogin())
+        HOME_DIR = os.path.join("/home/", os.environ["SUDO_USER"])
 
 if IS_WINDOWS:
     APPDATA_DIR = os.environ["APPDATA"]
