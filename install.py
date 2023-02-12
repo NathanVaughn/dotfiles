@@ -169,7 +169,7 @@ def install_apt_packages() -> None:
         "software-properties-common",
         "python-is-python3",
         "bat",
-        "unzip",
+        "neofetch",
         "fontconfig",
         "nala",
     ]
