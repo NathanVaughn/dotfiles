@@ -1,10 +1,11 @@
-import shutil
 import os
+import platform
+import shutil
 import subprocess
+import sys
+import tempfile
 import urllib.request
 import zipfile
-import tempfile
-import sys
 
 # colors
 RED = "\033[0;31m"
@@ -17,6 +18,7 @@ NC = "\033[0m"  # No Color
 
 IS_LINUX = os.name == "posix"
 IS_WINDOWS = os.name == "nt"
+IS_WSL = "microsoft-standard" in platform.uname().release
 
 APT_UPDATED = False
 
@@ -31,7 +33,7 @@ LINUX_DIR = os.path.join(THIS_DIR, "linux")
 HAS_SUDO = False
 
 if IS_LINUX:
-    HAS_SUDO = os.geteuid() == 0
+    HAS_SUDO = os.geteuid() == 0  # type: ignore
 
     if HAS_SUDO:
         HOME_DIR = os.path.join("/home/", os.environ["SUDO_USER"])
@@ -162,6 +164,14 @@ def set_git_config(email: bool, gpg: bool) -> None:
             set_git_config_key_value(
                 "gpg.program", "C:\\Program Files\\Git\\usr\\bin\\gpg.exe"
             )
+        elif IS_WSL:
+            set_git_config_key_value(
+                "gpg.program", "/mnt/c/Program Files/Git/usr/bin/gpg.exe"
+            )
+        elif IS_LINUX:
+            which_gpg = shutil.which("gpg")
+            assert which_gpg is not None
+            set_git_config_key_value("gpg.program", which_gpg)
 
 
 def install_apt_packages() -> None:
