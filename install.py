@@ -329,7 +329,7 @@ def main() -> None:
         )
     elif IS_LINUX:
         print(
-            f"{GREEN}Done.{NC} Run {BOLD}source ~/.bash_profile{NC} to refresh your Bash profile."
+            f"{GREEN}Done.{NC} Run {BOLD}source {HOME_DIR}/.bash_profile{NC} to refresh your Bash profile."
         )
 
 
