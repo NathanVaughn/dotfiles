@@ -214,7 +214,7 @@ def set_git_config(email: bool, gpg: bool) -> None:
                 "pinentry-program /mnt/c/Program Files/Git/usr/bin/pinentry.exe",
             )
 
-            subprocess.check_call([w("gpg-connent-agent"), "reloadagent", "/bye"])
+            subprocess.check_call([w("gpg-connect-agent"), "reloadagent", "/bye"])
 
         elif IS_LINUX:
             install_apt_package("gpg")
@@ -331,6 +331,9 @@ def get_response(prompt: str, new_line: bool = True) -> bool:
 
 
 def main() -> None:
+    if IS_LINUX and not HAS_SUDO:
+        print(f"{RED}Recommend to rerun with {BOLD}sudo{NC}{RED} for more options.{NC}")
+
     if IS_LINUX and HAS_SUDO:
         rewrite_apt_sources_bool = get_response("rewrite apt sources")
 
