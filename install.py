@@ -6,6 +6,7 @@ import sys
 import tempfile
 import urllib.request
 import zipfile
+from typing import List
 
 # colors
 RED = "\033[0;31m"
@@ -95,6 +96,12 @@ def add_line_to_file(filename: str, newline: str) -> None:
         fp.writelines(lines)
 
 
+def unsudo_command(cmd: List[str]) -> List[str]:
+    if HAS_SUDO:
+        cmd = ["sudo", "-u", os.environ["SUDO_USER"], "-i"] + cmd
+    return cmd
+
+
 def install_pip_settings() -> None:
     src = os.path.join(PKGS_DIR, "pip.ini")
 
@@ -166,12 +173,7 @@ def rewrite_apt_sources() -> None:
 
 def set_git_config_key_value(key: str, value: str) -> None:
     print(f"Configuring git {key}")
-
-    cmd = [w("git"), "config", "--global", key, value]
-    if HAS_SUDO:
-        cmd = ["sudo", "-u", os.environ["SUDO_USER"], "-i"] + cmd
-
-    subprocess.check_call(cmd)
+    subprocess.check_call(unsudo_command([w("git"), "config", "--global", key, value]))
 
 
 def set_git_config(email: bool, gpg: bool) -> None:
@@ -214,7 +216,9 @@ def set_git_config(email: bool, gpg: bool) -> None:
                 "pinentry-program /mnt/c/Program Files/Git/usr/bin/pinentry.exe",
             )
 
-            subprocess.check_call([w("gpg-connect-agent"), "reloadagent", "/bye"])
+            subprocess.check_call(
+                unsudo_command([w("gpg-connect-agent"), "reloadagent", "/bye"])
+            )
 
         elif IS_LINUX:
             install_apt_package("gpg")
