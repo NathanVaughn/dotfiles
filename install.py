@@ -53,10 +53,46 @@ if IS_WINDOWS:
 
 
 def w(program: str) -> str:
+    """
+    shutil.which, but with an assert to make sure the program was found.
+    """
     ret = shutil.which(program)
     if ret is None:
         raise FileNotFoundError(f"Could not find {program}")
     return ret
+
+
+def add_line_to_file(filename: str, newline: str) -> None:
+    """
+    Add a new line to a file. If an existing line is found with the same
+    starting string, it will be replaced.
+    """
+    newline += "\n"
+
+    # read file
+    with open(filename, "r") as fp:
+        lines = fp.readlines()
+
+    key = newline.split(" ", maxsplit=1)[0]
+
+    # replace matching line
+    found = False
+
+    for i, line in enumerate(lines):
+        if line.startswith(key):
+            if line == newline:
+                return
+
+            lines[i] = newline
+            found = True
+            break
+
+    if not found:
+        lines.append(newline)
+
+    # write new contents
+    with open(filename, "w") as fp:
+        fp.writelines(lines)
 
 
 def install_pip_settings() -> None:
@@ -164,14 +200,27 @@ def set_git_config(email: bool, gpg: bool) -> None:
             set_git_config_key_value(
                 "gpg.program", "C:\\Program Files\\Git\\usr\\bin\\gpg.exe"
             )
+
         elif IS_WSL:
+            install_apt_package("gpg")
+            install_apt_package("gnupg2")
+            install_apt_package("socat")
+
             set_git_config_key_value(
                 "gpg.program", "/mnt/c/Program Files/Git/usr/bin/gpg.exe"
             )
+            add_line_to_file(
+                os.path.join(HOME_DIR, ".gnupg", "gpg-agent.conf"),
+                "pinentry-program /mnt/c/Program Files/Git/usr/bin/pinentry.exe",
+            )
+
+            subprocess.check_call([w("gpg-connent-agent"), "reloadagent", "/bye"])
+
         elif IS_LINUX:
-            which_gpg = shutil.which("gpg")
-            assert which_gpg is not None
-            set_git_config_key_value("gpg.program", which_gpg)
+            install_apt_package("gpg")
+            install_apt_package("gnupg2")
+
+            set_git_config_key_value("gpg.program", w("gpg"))
 
 
 def install_apt_packages() -> None:
