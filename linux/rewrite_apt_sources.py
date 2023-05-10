@@ -21,13 +21,13 @@ def process_line(line: str) -> Optional[str]:
     url = chunks[url_chunk_index].removesuffix("/")
     distro = chunks[url_chunk_index + 1]
 
-    if url.startswith("https://pkgs.nthnv.me"):
+    if url.startswith("https://pkgs.nathanv.app"):
         return
 
     # rewrite url
     print(f"\t Rewriting {url}")
     new_url = (
-        f'https://pkgs.nthnv.me/repository/{url.split("://")[1].replace("/", "-")}'
+        f'https://pkgs.nathanv.app/repository/{url.split("://")[1].replace("/", "-")}'
     )
 
     if distro != "/":
