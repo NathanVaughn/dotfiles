@@ -337,9 +337,35 @@ def install_pyenv() -> None:
         )
         os.remove("install-pyenv-win.ps1")
     elif IS_LINUX:
-        pyenv_installer, _ = urllib.request.urlretrieve("https://pyenv.run")
-        subprocess.check_call(["bash", pyenv_installer])
-        os.remove(pyenv_installer)
+        if shutil.which("pyenv"):
+            subprocess.check_call(["pyenv", "update"])
+        else:
+            packages = [
+                "pkg-config",
+                "build-essential",
+                "gdb",
+                "lcov",
+                "libbz2-dev",
+                "libffi-dev",
+                "libgdbm-dev",
+                "libgdbm-compat-dev",
+                "liblzma-dev",
+                "libncurses5-dev",
+                "libreadline6-dev",
+                "libsqlite3-dev",
+                "libssl-dev",
+                "lzma",
+                "lzma-dev",
+                "tk-dev",
+                "uuid-dev",
+                "zlib1g-dev",
+            ]
+            for package in packages:
+                install_apt_package(package)
+
+            pyenv_installer, _ = urllib.request.urlretrieve("https://pyenv.run")
+            subprocess.check_call(["bash", pyenv_installer])
+            os.remove(pyenv_installer)
 
 
 def get_response(prompt: str, new_line: bool = True) -> bool:
