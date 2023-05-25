@@ -76,6 +76,11 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
+# for pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
 # for oh-my-posh
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 eval "$(~/.local/bin/oh-my-posh --init --shell bash --config ~/.poshthemes/nathanv-me.omp.json)"

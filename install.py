@@ -325,6 +325,23 @@ def install_fonts() -> None:
         shutil.rmtree(target)
 
 
+def install_pyenv() -> None:
+    if IS_WINDOWS:
+        # https://github.com/pyenv-win/pyenv-win/blob/master/docs/installation.md#powershell
+        subprocess.check_call(
+            [
+                "powershell.exe",
+                "-c",
+                'Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"',
+            ]
+        )
+        os.remove("install-pyenv-win.ps1")
+    elif IS_LINUX:
+        pyenv_installer, _ = urllib.request.urlretrieve("https://pyenv.run")
+        subprocess.check_call(["bash", pyenv_installer])
+        os.remove(pyenv_installer)
+
+
 def get_response(prompt: str, new_line: bool = True) -> bool:
     full_prompt = f"{BOLD}Would you like to {prompt}? {NC}"
     if new_line:
@@ -378,6 +395,9 @@ def main() -> None:
 
     if get_response("install npm settings"):
         install_npm_settings()
+
+    if get_response("install pyenv"):
+        install_pyenv()
 
     if IS_WINDOWS:
         print(

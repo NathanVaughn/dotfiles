@@ -11,4 +11,9 @@
 
 export PATH=~/bin:$PATH
 export PATH=~/.local/bin:$PATH
-export PATH=~/.pyenv/bin:$PATH
+
+# for pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
