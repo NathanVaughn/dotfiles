@@ -6,7 +6,7 @@ import sys
 import tempfile
 import urllib.request
 import zipfile
-from typing import List
+from typing import List, Union
 
 # colors
 RED = "\033[0;31m"
@@ -31,13 +31,10 @@ OMP_DIR = os.path.join(THIS_DIR, "oh-my-posh")
 WINDOWS_DIR = os.path.join(THIS_DIR, "windows")
 LINUX_DIR = os.path.join(THIS_DIR, "linux")
 
-HAS_SUDO = False
-
 if IS_LINUX:
-    HAS_SUDO = os.geteuid() == 0  # type: ignore
-
-    if HAS_SUDO:
-        HOME_DIR = os.path.join("/home/", os.environ["SUDO_USER"])
+    if os.geteuid() == 0:  # type: ignore
+        print(f"{RED}Rerun {BOLD}without{NC}{RED} sudo.{NC}")
+        sys.exit(1)
 
 if IS_WINDOWS:
     APPDATA_DIR = os.environ["APPDATA"]
@@ -51,6 +48,10 @@ if IS_WINDOWS:
     dll.SHGetSpecialFolderPathW(None, buf, 0x0005, False)
 
     DOCUMENTS_DIR = buf.value
+
+
+def sudo(command: List[str]) -> List[str]:
+    return ["sudo"] + command
 
 
 def w(program: str) -> str:
@@ -94,12 +95,6 @@ def add_line_to_file(filename: str, newline: str) -> None:
     # write new contents
     with open(filename, "w") as fp:
         fp.writelines(lines)
-
-
-def unsudo_command(cmd: List[str]) -> List[str]:
-    if HAS_SUDO:
-        cmd = ["sudo", "-u", os.environ["SUDO_USER"], "-i"] + cmd
-    return cmd
 
 
 def install_pip_settings() -> None:
@@ -150,30 +145,37 @@ def install_powershell_profile() -> None:
     print(f"Installed PowerShell profile to {target}")
 
 
-def install_apt_package(package: str) -> None:
+def install_apt_packages(package: Union[str, List[str]]) -> None:
     global APT_UPDATED
 
     if not APT_UPDATED:
-        subprocess.check_call([w("apt-get"), "update", "-y"])
+        subprocess.check_call(sudo(["apt-get", "update", "-y"]))
         APT_UPDATED = True
 
-    subprocess.check_call([w("apt-get"), "install", "-y", package])
+    cmd = sudo(["apt-get", "install", "-y"])
+
+    if isinstance(package, list):
+        cmd += package
+    else:
+        cmd += [package]
+
+    subprocess.check_call(cmd)
 
 
 def update_git() -> None:
-    subprocess.check_call([w("add-apt-repository"), "ppa:git-core/ppa", "-y"])
-    install_apt_package("git")
+    subprocess.check_call(sudo(["add-apt-repository", "ppa:git-core/ppa", "-y"]))
+    install_apt_packages("git")
 
 
 def rewrite_apt_sources() -> None:
     subprocess.check_call(
-        [sys.executable, os.path.join(LINUX_DIR, "rewrite_apt_sources.py")]
+        sudo([sys.executable, os.path.join(LINUX_DIR, "rewrite_apt_sources.py")])
     )
 
 
 def set_git_config_key_value(key: str, value: str) -> None:
     print(f"Configuring git {key}")
-    subprocess.check_call(unsudo_command([w("git"), "config", "--global", key, value]))
+    subprocess.check_call([w("git"), "config", "--global", key, value])
 
 
 def set_git_config(email: bool, gpg: bool) -> None:
@@ -204,9 +206,7 @@ def set_git_config(email: bool, gpg: bool) -> None:
             )
 
         elif IS_WSL:
-            install_apt_package("gpg")
-            install_apt_package("gnupg2")
-            install_apt_package("socat")
+            install_apt_packages(["gpg", "gnupg2", "socat"])
 
             set_git_config_key_value(
                 "gpg.program", "/mnt/c/Program Files/Git/usr/bin/gpg.exe"
@@ -216,18 +216,15 @@ def set_git_config(email: bool, gpg: bool) -> None:
                 "pinentry-program /mnt/c/Program Files/Git/usr/bin/pinentry.exe",
             )
 
-            subprocess.check_call(
-                unsudo_command([w("gpg-connect-agent"), "reloadagent", "/bye"])
-            )
+            subprocess.check_call([w("gpg-connect-agent"), "reloadagent", "/bye"])
 
         elif IS_LINUX:
-            install_apt_package("gpg")
-            install_apt_package("gnupg2")
+            install_apt_packages(["gpg", "gnupg2"])
 
             set_git_config_key_value("gpg.program", w("gpg"))
 
 
-def install_apt_packages() -> None:
+def install_favorite_apt_packages() -> None:
     packages = [
         "software-properties-common",
         "python-is-python3",
@@ -236,8 +233,7 @@ def install_apt_packages() -> None:
         "fontconfig",
         "nala",
     ]
-    for package in packages:
-        install_apt_package(package)
+    install_apt_packages(packages)
 
 
 def install_bash_settings() -> None:
@@ -259,7 +255,7 @@ def install_oh_my_posh() -> None:
     print("Installing oh-my-posh")
 
     if IS_WINDOWS:
-        subprocess.run([w("winget"), "install", "JanDeDobbeleer.OhMyPosh"])
+        subprocess.check_call([w("winget"), "install", "JanDeDobbeleer.OhMyPosh"])
 
         posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
         os.makedirs(posh_themes, exist_ok=True)
@@ -317,7 +313,7 @@ def install_fonts() -> None:
     os.remove(fonts_zip)
 
     if IS_LINUX:
-        subprocess.check_call(["fc-cache", "-fv"])
+        subprocess.check_call(sudo(["fc-cache", "-fv"]))
     elif IS_WINDOWS:
         subprocess.check_call(
             [w("powershell"), os.path.join(WINDOWS_DIR, "install_fonts.ps1"), target]
@@ -330,7 +326,7 @@ def install_pyenv() -> None:
         # https://github.com/pyenv-win/pyenv-win/blob/master/docs/installation.md#powershell
         subprocess.check_call(
             [
-                "powershell.exe",
+                w("powershell"),
                 "-c",
                 'Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"',
             ]
@@ -360,8 +356,7 @@ def install_pyenv() -> None:
                 "uuid-dev",
                 "zlib1g-dev",
             ]
-            for package in packages:
-                install_apt_package(package)
+            install_apt_packages(packages)
 
             pyenv_installer, _ = urllib.request.urlretrieve("https://pyenv.run")
             subprocess.check_call(["bash", pyenv_installer])
@@ -378,25 +373,22 @@ def get_response(prompt: str, new_line: bool = True) -> bool:
 
 
 def main() -> None:
-    if IS_LINUX and not HAS_SUDO:
-        print(f"{RED}Recommend to rerun with {BOLD}sudo{NC}{RED} for more options.{NC}")
-
-    if IS_LINUX and HAS_SUDO:
+    if IS_LINUX:
         rewrite_apt_sources_bool = get_response("rewrite apt sources")
 
         if rewrite_apt_sources_bool:
             rewrite_apt_sources()
 
-        if get_response("install apt packages"):
-            install_apt_packages()
+        if get_response("install favorite apt packages"):
+            install_favorite_apt_packages()
 
         if get_response("update git"):
             update_git()
             if rewrite_apt_sources_bool:
                 rewrite_apt_sources()
 
-    if IS_LINUX and get_response("install Bash settings"):
-        install_bash_settings()
+        if get_response("install Bash settings"):
+            install_bash_settings()
 
     if get_response("configure git"):
         email = get_response("set git's email to your personal address", new_line=False)
