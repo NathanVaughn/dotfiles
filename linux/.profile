@@ -16,7 +16,7 @@ export PATH=~/.local/bin:$PATH
 export PATH="$PYENV_ROOT/bin:$PATH"
 
 # for pyenv
-if ! command -v pyenv &> /dev/null
+if command -v pyenv &> /dev/null
 then
     eval "$(pyenv init -)"
 fi
