@@ -3,7 +3,10 @@
 alias clc='clear'
 alias cls='clear'
 
-alias ll='ls -la'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
 alias bat='batcat'
 alias w='watch'
 

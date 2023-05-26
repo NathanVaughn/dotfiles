@@ -51,11 +51,6 @@ xterm*|rxvt*)
     ;;
 esac
 
-# some more ls aliases
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
@@ -78,8 +73,12 @@ fi
 
 # for pyenv
 export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+export PATH="$PYENV_ROOT/bin:$PATH"
+
+if ! command -v pyenv &> /dev/null
+then
+    eval "$(pyenv init -)"
+fi
 
 # for oh-my-posh
 export VIRTUAL_ENV_DISABLE_PROMPT=1
