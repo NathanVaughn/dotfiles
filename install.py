@@ -4,6 +4,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import getpass
+import functools
 import urllib.request
 import zipfile
 from typing import List, Union
@@ -31,10 +33,9 @@ OMP_DIR = os.path.join(THIS_DIR, "oh-my-posh")
 WINDOWS_DIR = os.path.join(THIS_DIR, "windows")
 LINUX_DIR = os.path.join(THIS_DIR, "linux")
 
-if IS_LINUX:
-    if os.geteuid() == 0:  # type: ignore
-        print(f"{RED}Rerun {BOLD}without{NC}{RED} sudo.{NC}")
-        sys.exit(1)
+if IS_LINUX and os.geteuid() == 0:
+    print(f"{RED}Rerun {BOLD}without{NC}{RED} sudo.{NC}")
+    sys.exit(1)
 
 if IS_WINDOWS:
     APPDATA_DIR = os.environ["APPDATA"]
@@ -53,6 +54,16 @@ if IS_WINDOWS:
 def sudo(command: List[str]) -> List[str]:
     return ["sudo"] + command
 
+
+@functools.cache
+def input_cached(prompt:str, password:bool=False) -> str:
+    """
+    `input()` but cached.
+    """
+    if password:
+        return getpass.getpass(prompt)
+
+    return input(prompt)
 
 def w(program: str) -> str:
     """
@@ -168,6 +179,8 @@ def update_git() -> None:
 
 
 def rewrite_apt_sources() -> None:
+    os.environ["NEXUS_USERNAME"] = input_cached("Enter your Nexus username: ")
+    os.environ["NEXUS_PASSWORD"] = input_cached("Enter your Nexus password: ", pasword=True)
     subprocess.check_call(
         sudo([sys.executable, os.path.join(LINUX_DIR, "rewrite_apt_sources.py")])
     )
@@ -192,7 +205,7 @@ def set_git_config(email: bool, gpg: bool) -> None:
     set_git_config_key_value("credential.helper", "store")
 
     if email:
-        set_git_config_key_value("user.email", "8636459+NathanVaughn@users.noreply.github.com")
+        set_git_config_key_value("user.email", "nvaughn51@gmail.com")
 
     if gpg:
         set_git_config_key_value(
