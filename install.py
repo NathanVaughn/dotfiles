@@ -1,11 +1,11 @@
+import functools
+import getpass
 import os
 import platform
 import shutil
 import subprocess
 import sys
 import tempfile
-import getpass
-import functools
 import urllib.request
 import zipfile
 from typing import List, Union
@@ -56,7 +56,7 @@ def sudo(command: List[str]) -> List[str]:
 
 
 @functools.cache
-def input_cached(prompt:str, password:bool=False) -> str:
+def input_cached(prompt: str, password: bool = False) -> str:
     """
     `input()` but cached.
     """
@@ -65,10 +65,14 @@ def input_cached(prompt:str, password:bool=False) -> str:
 
     return input(prompt)
 
+
 def w(program: str) -> str:
     """
     shutil.which, but with an assert to make sure the program was found.
     """
+    if program == "brew" and IS_LINUX:
+        return "/home/linuxbrew/.linuxbrew/bin/brew"
+
     ret = shutil.which(program)
     if ret is None:
         raise FileNotFoundError(f"Could not find {program}")
@@ -180,7 +184,9 @@ def update_git() -> None:
 
 def rewrite_apt_sources() -> None:
     os.environ["NEXUS_USERNAME"] = input_cached("Enter your Nexus username: ")
-    os.environ["NEXUS_PASSWORD"] = input_cached("Enter your Nexus password: ", pasword=True)
+    os.environ["NEXUS_PASSWORD"] = input_cached(
+        "Enter your Nexus password: ", pasword=True
+    )
     subprocess.check_call(
         sudo([sys.executable, os.path.join(LINUX_DIR, "rewrite_apt_sources.py")])
     )
@@ -276,33 +282,17 @@ def install_oh_my_posh() -> None:
         shutil.copy(os.path.join(OMP_DIR, "nathanv-me.omp.json"), posh_themes)
 
     elif IS_LINUX:
-        local_bin = os.path.join(HOME_DIR, ".local", "bin")
-        os.makedirs(local_bin, exist_ok=True)
+        subprocess.check_call(
+            [w("brew"), "install", "jandedobbeleer/oh-my-posh/oh-my-posh"]
+        )
 
-        url = "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-amd64"
-        print(f"Downloading {url}")
-        urllib.request.urlretrieve(url, os.path.join(local_bin, "oh-my-posh"))
-        subprocess.check_call(["chmod", "+x", os.path.join(local_bin, "oh-my-posh")])
-
-        print("Installing oh-my-posh themes")
-        posh_themes = os.path.join(HOME_DIR, ".poshthemes")
-        os.makedirs(posh_themes, exist_ok=True)
-
-        url = "https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/themes.zip"
-        print(f"Downloading {url}")
-        themes_zip, _ = urllib.request.urlretrieve(url)
-        with zipfile.ZipFile(themes_zip, "r") as zip_ref:
-            # delete target contents first
-            for member in zip_ref.namelist():
-                if os.path.isfile(os.path.join(posh_themes, member)):
-                    os.remove(os.path.join(posh_themes, member))
-
-            zip_ref.extractall(posh_themes)
-
-        os.remove(themes_zip)
-
+        posh_themes = os.path.join(
+            subprocess.check_output([w("brew"), "--prefix", "oh-my-posh"])
+            .decode()
+            .strip(),
+            "themes",
+        )
         shutil.copy(os.path.join(OMP_DIR, "nathanv-me.omp.json"), posh_themes)
-        subprocess.check_call(["chmod", "-R", "u+rw", posh_themes])
 
 
 def install_fonts() -> None:
@@ -332,6 +322,17 @@ def install_fonts() -> None:
             [w("powershell"), os.path.join(WINDOWS_DIR, "install_fonts.ps1"), target]
         )
         shutil.rmtree(target)
+
+
+def install_homebrew() -> None:
+    homebrew_installer, _ = urllib.request.urlretrieve(
+        "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+    )
+    subprocess.check_call(["bash", homebrew_installer])
+    os.remove(homebrew_installer)
+
+    install_apt_packages("build-essential")
+    subprocess.check_call([w("brew"), "install", "gcc"])
 
 
 def install_pyenv() -> None:
@@ -387,10 +388,16 @@ def get_response(prompt: str, new_line: bool = True) -> bool:
 
 def main() -> None:
     if IS_LINUX:
+        if get_response("install Bash settings"):
+            install_bash_settings()
+
         rewrite_apt_sources_bool = get_response("rewrite apt sources")
 
         if rewrite_apt_sources_bool:
             rewrite_apt_sources()
+
+        if get_response("install homebrew"):
+            install_homebrew()
 
         if get_response("install favorite apt packages"):
             install_favorite_apt_packages()
@@ -399,9 +406,6 @@ def main() -> None:
             update_git()
             if rewrite_apt_sources_bool:
                 rewrite_apt_sources()
-
-        if get_response("install Bash settings"):
-            install_bash_settings()
 
     if get_response("configure git"):
         email = get_response("set git's email to your personal address", new_line=False)
