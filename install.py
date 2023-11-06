@@ -286,12 +286,8 @@ def install_oh_my_posh() -> None:
             [w("brew"), "install", "jandedobbeleer/oh-my-posh/oh-my-posh"]
         )
 
-        posh_themes = os.path.join(
-            subprocess.check_output([w("brew"), "--prefix", "oh-my-posh"])
-            .decode()
-            .strip(),
-            "themes",
-        )
+        posh_themes = os.path.join(HOME_DIR, ".poshthemes")
+        os.makedirs(posh_themes, exist_ok=True)
         shutil.copy(os.path.join(OMP_DIR, "nathanv-me.omp.json"), posh_themes)
 
 

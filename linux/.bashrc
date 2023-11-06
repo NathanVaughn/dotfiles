@@ -85,4 +85,4 @@ eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 # for oh-my-posh
 export VIRTUAL_ENV_DISABLE_PROMPT=1
-eval "$(/home/linuxbrew/.linuxbrew/opt/oh-my-posh/bin/oh-my-posh --init --shell bash --config /home/linuxbrew/.linuxbrew/opt/oh-my-posh/themes/nathanv-me.omp.json)"
+eval "$(/home/linuxbrew/.linuxbrew/opt/oh-my-posh/bin/oh-my-posh --init --shell bash --config ~/.poshthemes/nathanv-me.omp.json)"
