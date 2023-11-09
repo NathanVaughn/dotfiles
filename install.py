@@ -79,6 +79,20 @@ def w(program: str) -> str:
     return ret
 
 
+def winget_install(package: str) -> None:
+    """
+    Install a package with Winget
+    """
+    subprocess.check_call([w("winget"), "install", package])
+
+
+def snap_install(package: str) -> None:
+    """
+    Install a package with Winget
+    """
+    subprocess.check_call(sudo([w("snap"), "install", package]))
+
+
 def add_line_to_file(filename: str, newline: str) -> None:
     """
     Add a new line to a file. If an existing line is found with the same
@@ -160,7 +174,7 @@ def install_powershell_profile() -> None:
     print(f"Installed PowerShell profile to {target}")
 
 
-def install_apt_packages(package: Union[str, List[str]]) -> None:
+def apt_install(package: Union[str, List[str]]) -> None:
     global APT_UPDATED
 
     if not APT_UPDATED:
@@ -179,7 +193,7 @@ def install_apt_packages(package: Union[str, List[str]]) -> None:
 
 def update_git() -> None:
     subprocess.check_call(sudo(["add-apt-repository", "ppa:git-core/ppa", "-y"]))
-    install_apt_packages("git")
+    apt_install("git")
 
 
 def rewrite_apt_sources() -> None:
@@ -225,7 +239,7 @@ def set_git_config(email: bool, gpg: bool) -> None:
             )
 
         elif IS_WSL:
-            install_apt_packages(["gpg", "gnupg2", "socat"])
+            apt_install(["gpg", "gnupg2", "socat"])
 
             set_git_config_key_value(
                 "gpg.program", "/mnt/c/Program Files/Git/usr/bin/gpg.exe"
@@ -238,7 +252,7 @@ def set_git_config(email: bool, gpg: bool) -> None:
             subprocess.check_call([w("gpg-connect-agent"), "reloadagent", "/bye"])
 
         elif IS_LINUX:
-            install_apt_packages(["gpg", "gnupg2"])
+            apt_install(["gpg", "gnupg2"])
 
             set_git_config_key_value("gpg.program", w("gpg"))
 
@@ -250,9 +264,10 @@ def install_favorite_apt_packages() -> None:
         "bat",
         "neofetch",
         "fontconfig",
-        "nala",
+        "net-tools",
+        "iputils-ping",
     ]
-    install_apt_packages(packages)
+    apt_install(packages)
 
 
 def install_bash_settings() -> None:
@@ -274,12 +289,8 @@ def install_oh_my_posh() -> None:
     print("Installing oh-my-posh")
 
     if IS_WINDOWS:
-        subprocess.check_call([w("winget"), "install", "JanDeDobbeleer.OhMyPosh"])
-
+        winget_install("JanDeDobbeleer.OhMyPosh")
         posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
-        os.makedirs(posh_themes, exist_ok=True)
-
-        shutil.copy(os.path.join(OMP_DIR, "nathanv-me.omp.json"), posh_themes)
 
     elif IS_LINUX:
         subprocess.check_call(
@@ -287,8 +298,11 @@ def install_oh_my_posh() -> None:
         )
 
         posh_themes = os.path.join(HOME_DIR, ".poshthemes")
-        os.makedirs(posh_themes, exist_ok=True)
-        shutil.copy(os.path.join(OMP_DIR, "nathanv-me.omp.json"), posh_themes)
+    else:
+        raise ValueError
+
+    os.makedirs(posh_themes, exist_ok=True)
+    shutil.copy(os.path.join(OMP_DIR, "nathanv-me.omp.json"), posh_themes)
 
 
 def install_fonts() -> None:
@@ -327,7 +341,7 @@ def install_homebrew() -> None:
     subprocess.check_call(["bash", homebrew_installer])
     os.remove(homebrew_installer)
 
-    install_apt_packages("build-essential")
+    apt_install("build-essential")
     subprocess.check_call([w("brew"), "install", "gcc"])
 
 
@@ -366,18 +380,63 @@ def install_pyenv() -> None:
                 "uuid-dev",
                 "zlib1g-dev",
             ]
-            install_apt_packages(packages)
+            apt_install(packages)
 
             pyenv_installer, _ = urllib.request.urlretrieve("https://pyenv.run")
             subprocess.check_call(["bash", pyenv_installer])
             os.remove(pyenv_installer)
 
 
+def install_libreoffice() -> None:
+    if IS_LINUX:
+        apt_install("libreoffice")
+    elif IS_WINDOWS:
+        winget_install("TheDocumentFoundation.LibreOffice")
+
+
+def install_discord() -> None:
+    if IS_LINUX:
+        snap_install("discord")
+    elif IS_WINDOWS:
+        winget_install("Discord.Discord")
+
+
+def install_spotify() -> None:
+    if IS_LINUX:
+        snap_install("spotify")
+    elif IS_WINDOWS:
+        winget_install("Spotify.Spotify")
+
+
+def install_vscode() -> None:
+    if IS_LINUX:
+        snap_install("code")
+    elif IS_WINDOWS:
+        winget_install("Microsoft.VisualStudioCode")
+
+
+def install_bing_wall() -> None:
+    snap_install("bing-wall")
+
+
+def install_gnome_tweaks() -> None:
+    apt_install(["gnome-tweaks", "gnome-browser-connector"])
+    print("Remember to open https://extensions.gnome.org/ afterwards")
+
+
+def install_chrome() -> None:
+    if IS_LINUX:
+        deb_file, _ = urllib.request.urlretrieve(
+            "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+        )
+        subprocess.check_call(sudo(["dpkg", "-i", deb_file]))
+        os.remove(deb_file)
+    elif IS_WINDOWS:
+        winget_install("Google.Chrome")
+
+
 def get_response(prompt: str, new_line: bool = True) -> bool:
     full_prompt = f"{BOLD}Would you like to {prompt}? {NC}"
-    if new_line:
-        full_prompt = "\n" + full_prompt
-
     val = input(full_prompt).strip().lower()
     return val.startswith("y")
 
@@ -402,6 +461,12 @@ def main() -> None:
             update_git()
             if rewrite_apt_sources_bool:
                 rewrite_apt_sources()
+
+        if get_response("install Bing wall"):
+            install_bing_wall()
+
+        if get_response("install Gnome tweaks"):
+            install_gnome_tweaks()
 
     if get_response("configure git"):
         email = get_response("set git's email to your personal address", new_line=False)
@@ -429,6 +494,21 @@ def main() -> None:
 
     if get_response("install pyenv"):
         install_pyenv()
+
+    if get_response("install Libreoffice"):
+        install_libreoffice()
+
+    if get_response("install Discord"):
+        install_discord()
+
+    if get_response("install Spotify"):
+        install_spotify()
+
+    if get_response("install VSCode"):
+        install_vscode()
+
+    if get_response("install Chrome"):
+        install_chrome()
 
     if IS_WINDOWS:
         print(
