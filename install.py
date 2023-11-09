@@ -79,6 +79,24 @@ def w(program: str) -> str:
     return ret
 
 
+def _bash_installer(url: str) -> None:
+    """
+    Run an installer from a URL
+    """
+    installer, _ = urllib.request.urlretrieve(url)
+    subprocess.check_call(["bash", installer])
+    os.remove(installer)
+
+
+def _deb_installer(url: str) -> None:
+    """
+    Install a .deb file from a URL
+    """
+    deb_file, _ = urllib.request.urlretrieve(url)
+    subprocess.check_call(sudo(["dpkg", "-i", deb_file]))
+    os.remove(deb_file)
+
+
 def winget_install(package: str) -> None:
     """
     Install a package with Winget
@@ -335,11 +353,9 @@ def install_fonts() -> None:
 
 
 def install_homebrew() -> None:
-    homebrew_installer, _ = urllib.request.urlretrieve(
+    _bash_installer(
         "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
     )
-    subprocess.check_call(["bash", homebrew_installer])
-    os.remove(homebrew_installer)
 
     apt_install("build-essential")
     subprocess.check_call([w("brew"), "install", "gcc"])
@@ -382,9 +398,14 @@ def install_pyenv() -> None:
             ]
             apt_install(packages)
 
-            pyenv_installer, _ = urllib.request.urlretrieve("https://pyenv.run")
-            subprocess.check_call(["bash", pyenv_installer])
-            os.remove(pyenv_installer)
+            _bash_installer("https://pyenv.run")
+
+
+def install_docker() -> None:
+    if IS_LINUX:
+        _bash_installer("https://get.docker.com")
+    elif IS_WINDOWS:
+        winget_install("Docker.DockerDesktop")
 
 
 def install_libreoffice() -> None:
@@ -426,13 +447,18 @@ def install_gnome_tweaks() -> None:
 
 def install_chrome() -> None:
     if IS_LINUX:
-        deb_file, _ = urllib.request.urlretrieve(
+        _deb_installer(
             "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
         )
-        subprocess.check_call(sudo(["dpkg", "-i", deb_file]))
-        os.remove(deb_file)
     elif IS_WINDOWS:
         winget_install("Google.Chrome")
+
+
+def install_steam() -> None:
+    if IS_LINUX:
+        _deb_installer("https://media.steampowered.com/client/installer/steam.deb")
+    elif IS_WINDOWS:
+        winget_install("Valve.Steam")
 
 
 def get_response(prompt: str, new_line: bool = True) -> bool:
@@ -495,6 +521,9 @@ def main() -> None:
     if get_response("install pyenv"):
         install_pyenv()
 
+    if get_response("install Docker"):
+        install_docker()
+
     if get_response("install Libreoffice"):
         install_libreoffice()
 
@@ -509,6 +538,9 @@ def main() -> None:
 
     if get_response("install Chrome"):
         install_chrome()
+
+    if get_response("install Steam"):
+        install_steam()
 
     if IS_WINDOWS:
         print(
