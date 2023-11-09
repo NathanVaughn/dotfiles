@@ -104,11 +104,14 @@ def winget_install(package: str) -> None:
     subprocess.check_call([w("winget"), "install", package])
 
 
-def snap_install(package: str) -> None:
+def snap_install(package: str, classic: bool = False) -> None:
     """
     Install a package with Winget
     """
-    subprocess.check_call(sudo([w("snap"), "install", package]))
+    cmd = sudo([w("snap"), "install", package])
+    if classic:
+        cmd += ["--classic"]
+    subprocess.check_call(cmd)
 
 
 def add_line_to_file(filename: str, newline: str) -> None:
@@ -408,6 +411,13 @@ def install_docker() -> None:
         winget_install("Docker.DockerDesktop")
 
 
+def install_nodejs() -> None:
+    if IS_LINUX:
+        snap_install("node", classic=True)
+    elif IS_WINDOWS:
+        winget_install("OpenJS.NodeJS.LTS")
+
+
 def install_libreoffice() -> None:
     if IS_LINUX:
         apt_install("libreoffice")
@@ -525,6 +535,9 @@ def main() -> None:
 
     if get_response("install Docker"):
         install_docker()
+
+    if get_response("install NodeJS"):
+        install_nodejs()
 
     if get_response("install Libreoffice"):
         install_libreoffice()
