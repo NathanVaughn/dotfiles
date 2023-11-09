@@ -417,7 +417,7 @@ def install_libreoffice() -> None:
 
 def install_discord() -> None:
     if IS_LINUX:
-        snap_install("discord")
+        _deb_installer("https://discord.com/api/download?platform=linux&format=deb")
     elif IS_WINDOWS:
         winget_install("Discord.Discord")
 
