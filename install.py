@@ -8,8 +8,27 @@ import sys
 import tempfile
 import urllib.request
 import zipfile
-from typing import List, Union
+from typing import Any, Callable, List, Union
 
+IS_LINUX = os.name == "posix"
+IS_WINDOWS = os.name == "nt"
+IS_WSL = "microsoft-standard" in platform.uname().release
+
+# our tracking
+APT_UPDATED = False
+
+# directories
+HOME_DIR = os.path.expanduser("~")
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+PKGS_DIR = os.path.join(THIS_DIR, "pkgs")
+OMP_DIR = os.path.join(THIS_DIR, "oh-my-posh")
+WINDOWS_DIR = os.path.join(THIS_DIR, "windows")
+LINUX_DIR = os.path.join(THIS_DIR, "linux")
+
+
+# our constants
+BREW_PATH = "/home/linuxbrew/.linuxbrew/bin/brew"
 # colors
 RED = "\033[0;31m"
 LIGHTRED = "\033[1;31m"
@@ -19,19 +38,6 @@ CYAN = "\033[0;36m"
 BOLD = "\033[1m"
 NC = "\033[0m"  # No Color
 
-IS_LINUX = os.name == "posix"
-IS_WINDOWS = os.name == "nt"
-IS_WSL = "microsoft-standard" in platform.uname().release
-
-APT_UPDATED = False
-
-HOME_DIR = os.path.expanduser("~")
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-
-PKGS_DIR = os.path.join(THIS_DIR, "pkgs")
-OMP_DIR = os.path.join(THIS_DIR, "oh-my-posh")
-WINDOWS_DIR = os.path.join(THIS_DIR, "windows")
-LINUX_DIR = os.path.join(THIS_DIR, "linux")
 
 if IS_LINUX and os.geteuid() == 0:
     print(f"{RED}Rerun {BOLD}without{NC}{RED} sudo.{NC}")
@@ -51,67 +57,154 @@ if IS_WINDOWS:
     DOCUMENTS_DIR = buf.value
 
 
-def sudo(command: List[str]) -> List[str]:
-    return ["sudo"] + command
-
-
-@functools.cache
-def input_cached(prompt: str, password: bool = False) -> str:
+def warn(msg: str) -> None:
     """
-    `input()` but cached.
+    Print a warning.
     """
-    if password:
-        return getpass.getpass(prompt)
-
-    return input(prompt)
+    print(f"{RED}{msg}{NC}")
 
 
-def w(program: str) -> str:
+def info(msg: str) -> None:
+    """
+    Print a warning.
+    """
+    print(f"{BOLD}{msg}{NC}")
+
+
+def has_winget() -> bool:
+    """
+    Checks if winget is installed.
+    """
+    return bool(shutil.which("winget"))
+
+
+def has_homebrew() -> bool:
+    """
+    Checks if homebrew is installed
+    """
+    which = bool(shutil.which("brew"))
+    return True if which else os.path.isfile(BREW_PATH)
+
+
+def which(program: str) -> str:
     """
     shutil.which, but with an assert to make sure the program was found.
     """
-    if program == "brew" and IS_LINUX:
-        return "/home/linuxbrew/.linuxbrew/bin/brew"
-
     ret = shutil.which(program)
     if ret is None:
         raise FileNotFoundError(f"Could not find {program}")
     return ret
 
 
-def _bash_installer(url: str) -> None:
+def sudo(command: List[str]) -> List[str]:
     """
-    Run an installer from a URL
+    Wraps a list of commands with sudo
+    """
+    return ["sudo"] + command
+
+
+def run(command: List[str]) -> None:
+    """
+    Runs a command
+    """
+    cmd = [which(command[0])] + command[1:]
+    subprocess.check_call(cmd)  # type: ignore
+
+
+def set_git_config_key_value(key: str, value: str) -> None:
+    """
+    Sets a git config value globally
+    """
+    print(f"Configuring git {key}")
+    run(["git", "config", "--global", key, value])
+
+
+def apt_install_packages(packages: Union[str, List[str]]) -> None:
+    """
+    Install one or more apt packages
+    """
+    global APT_UPDATED
+
+    if not APT_UPDATED:
+        run(sudo(["apt-get", "update", "-y"]))
+        APT_UPDATED = True
+
+    cmd = sudo(["apt-get", "install", "-y"])
+
+    if isinstance(packages, list):
+        cmd += packages
+    else:
+        cmd += [packages]
+
+    run(cmd)
+
+
+def bash_run_script_from_url(url: str) -> None:
+    """
+    Run an bash script from a URL
     """
     installer, _ = urllib.request.urlretrieve(url)
-    subprocess.check_call(["bash", installer])
+    run(["bash", installer])
     os.remove(installer)
 
 
-def _deb_installer(url: str) -> None:
+def powershell_run_script_from_url(url: str) -> None:
+    """
+    Run an powershell script from a URL
+    """
+    installer, _ = urllib.request.urlretrieve(url)
+    run(["powershell", installer])
+    os.remove(installer)
+
+
+def install_deb_from_url(url: str) -> None:
     """
     Install a .deb file from a URL
     """
     deb_file, _ = urllib.request.urlretrieve(url)
-    subprocess.check_call(sudo(["dpkg", "-i", deb_file]))
+    run(sudo(["dpkg", "-i", deb_file]))
     os.remove(deb_file)
+
+
+def homebrew_install(package: str) -> None:
+    """
+    Install a package with brew
+    """
+    if not has_homebrew():
+        warn(f"Homebrew is not installed, skipping install of {package}")
+        return
+
+    run([BREW_PATH, "install", package])
 
 
 def winget_install(package: str) -> None:
     """
     Install a package with Winget
     """
-    subprocess.check_call([w("winget"), "install", package])
+    if not has_winget():
+        warn(f"Winget is not installed, skipping install of {package}")
+        return
+
+    run(["winget", "install", package])
 
 
 def snap_install(package: str, classic: bool = False) -> None:
     """
-    Install a package with Winget
+    Install a snap package
     """
-    cmd = sudo([w("snap"), "install", package])
+    cmd = sudo(["snap", "install", package])
     if classic:
         cmd += ["--classic"]
-    subprocess.check_call(cmd)
+    run(cmd)
+
+
+def get_response(prompt: str) -> bool:
+    """
+    Prompt user with something and get a boolean response
+    """
+    full_prompt = f"{BOLD}Would you like to {prompt}? {NC}"
+    val = input(full_prompt).strip().lower()
+    return val.startswith("y")
 
 
 def add_line_to_file(filename: str, newline: str) -> None:
@@ -147,7 +240,210 @@ def add_line_to_file(filename: str, newline: str) -> None:
         fp.writelines(lines)
 
 
-def install_pip_settings() -> None:
+# decorators
+# =======================================
+def response(prompt: str) -> Callable:
+    """
+    Decorator to require a response to run the function
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs) -> Any:
+            if get_response(prompt):
+                func(*args, **kwargs)
+                return True
+
+        return wrapper
+
+    return decorator
+
+
+def require_windows(func: Callable) -> Callable:
+    """
+    Decorator to only run on Windows
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs) -> Any:
+        if IS_WINDOWS:
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
+def require_linux(func: Callable) -> Callable:
+    """
+    Decorator to only run on Linux
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs) -> Any:
+        if IS_LINUX:
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
+# utilities
+# =======================================
+@require_linux
+@response("use the git-core PPA and update Git")
+def install_util_git_update() -> None:
+    apt_install_packages("software-properties-common")
+    run(sudo(["add-apt-repository", "ppa:git-core/ppa", "-y"]))
+    apt_install_packages("git")
+
+
+# runtimes
+# =======================================
+
+
+@response("install NodeJS and NPM")
+def install_runtime_nodejs() -> None:
+    if IS_LINUX:
+        snap_install("node", classic=True)
+    elif IS_WINDOWS:
+        winget_install("OpenJS.NodeJS.LTS")
+
+
+@require_linux
+@response("install Homebrew")
+def install_runtime_homebrew() -> None:
+    bash_run_script_from_url(
+        "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+    )
+
+    apt_install_packages("build-essential")
+    run([BREW_PATH, "install", "gcc"])
+
+
+@response("install/update pyenv")
+def install_runtime_pyenv() -> None:
+    if IS_WINDOWS:
+        # https://github.com/pyenv-win/pyenv-win/blob/master/docs/installation.md#powershell
+        powershell_run_script_from_url(
+            "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1"
+        )
+    elif IS_LINUX:
+        if shutil.which("pyenv"):
+            run(["pyenv", "update"])
+        else:
+            packages = [
+                "pkg-config",
+                "build-essential",
+                "gdb",
+                "lcov",
+                "libbz2-dev",
+                "libffi-dev",
+                "libgdbm-dev",
+                "libgdbm-compat-dev",
+                "liblzma-dev",
+                "libncurses5-dev",
+                "libreadline6-dev",
+                "libsqlite3-dev",
+                "libssl-dev",
+                "lzma",
+                "lzma-dev",
+                "tk-dev",
+                "uuid-dev",
+                "zlib1g-dev",
+            ]
+            apt_install_packages(packages)
+            bash_run_script_from_url("https://pyenv.run")
+
+
+# apps
+# =======================================
+@response("install Docker")
+def install_app_docker() -> None:
+    if IS_LINUX:
+        bash_run_script_from_url("https://get.docker.com")
+    elif IS_WINDOWS:
+        winget_install("Docker.DockerDesktop")
+
+
+@response("install Google Chrome")
+def install_app_chrome() -> None:
+    if IS_LINUX:
+        install_deb_from_url(
+            "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+        )
+    elif IS_WINDOWS:
+        winget_install("Google.Chrome")
+
+
+@response("install Steam")
+def install_app_steam() -> None:
+    if IS_LINUX:
+        install_deb_from_url(
+            "https://media.steampowered.com/client/installer/steam.deb"
+        )
+    elif IS_WINDOWS:
+        winget_install("Valve.Steam")
+
+
+@response("install Spotify")
+def install_app_spotify() -> None:
+    if IS_LINUX:
+        snap_install("spotify")
+    elif IS_WINDOWS:
+        winget_install("Spotify.Spotify")
+
+
+@response("install VS Code")
+def install_app_vscode() -> None:
+    if IS_LINUX:
+        snap_install("code")
+    elif IS_WINDOWS:
+        winget_install("Microsoft.VisualStudioCode")
+
+
+@response("install Libreoffice")
+def install_app_libreoffice() -> None:
+    if IS_LINUX:
+        apt_install_packages("libreoffice")
+    elif IS_WINDOWS:
+        winget_install("TheDocumentFoundation.LibreOffice")
+
+
+@response("install Discord")
+def install_app_discord() -> None:
+    if IS_LINUX:
+        # 403 forbidden
+        # _deb_installer("https://discord.com/api/download?platform=linux&format=deb")
+        snap_install("discord")
+    elif IS_WINDOWS:
+        winget_install("Discord.Discord")
+
+
+# settings
+# =======================================
+@require_linux
+@response("change the default apt sources")
+def install_settings_apt_registry() -> None:
+    os.environ["NEXUS_USERNAME"] = input("Enter your Nexus username: ")
+    os.environ["NEXUS_PASSWORD"] = getpass.getpass(
+        "Enter your Nexus password: ",
+    )
+    run(sudo([sys.executable, os.path.join(LINUX_DIR, "rewrite_apt_sources.py")]))
+
+
+@require_linux
+@response("install favorite apt packages")
+def install_settings_favorite_apt_packages() -> None:
+    packages = [
+        "python-is-python3",
+        "bat",
+        "neofetch",
+        "net-tools",
+        "iputils-ping",
+    ]
+    apt_install_packages(packages)
+
+
+@response("change the default Pip registry")
+def install_settings_pip_registry() -> None:
     src = os.path.join(PKGS_DIR, "pip.ini")
 
     if IS_LINUX:
@@ -160,10 +456,11 @@ def install_pip_settings() -> None:
     os.makedirs(os.path.dirname(target), exist_ok=True)
     shutil.copy(src, target)
 
-    print(f"Installed pip settings to {target}")
+    print(f"Installed pip config to {target}")
 
 
-def install_npm_settings() -> None:
+@response("change the default NPM registry")
+def install_settings_npm_registry() -> None:
     src = os.path.join(PKGS_DIR, ".npmrc")
     target = os.path.join(HOME_DIR, ".npmrc")
     shutil.copy(src, target)
@@ -171,7 +468,9 @@ def install_npm_settings() -> None:
     print(f"Installed npm settings to {target}")
 
 
-def install_windows_terminal_settings() -> None:
+@require_windows
+@response("install the Windows Terminal settings")
+def install_settings_windows_terminal() -> None:
     src = os.path.join(WINDOWS_DIR, "wt_settings.json")
     target = os.path.join(
         LOCALAPPDATA_DIR,
@@ -185,7 +484,9 @@ def install_windows_terminal_settings() -> None:
     print(f"Installed Windows Terminal settings to {target}")
 
 
-def install_powershell_profile() -> None:
+@require_windows
+@response("install the Powershell profile")
+def install_settings_powershell_profile() -> None:
     src = os.path.join(WINDOWS_DIR, "Microsoft.PowerShell_profile.ps1")
     target = os.path.join(
         DOCUMENTS_DIR, "PowerShell", "Microsoft.PowerShell_profile.ps1"
@@ -195,44 +496,75 @@ def install_powershell_profile() -> None:
     print(f"Installed PowerShell profile to {target}")
 
 
-def apt_install(package: Union[str, List[str]]) -> None:
-    global APT_UPDATED
+@require_linux
+@response("install the Bash profile")
+def install_settings_bash_profile() -> None:
+    for file in os.listdir(LINUX_DIR):
+        if not file.startswith("."):
+            continue
 
-    if not APT_UPDATED:
-        subprocess.check_call(sudo(["apt-get", "update", "-y"]))
-        APT_UPDATED = True
+        src = os.path.join(LINUX_DIR, file)
+        target = os.path.join(HOME_DIR, file)
 
-    cmd = sudo(["apt-get", "install", "-y"])
+        if os.path.isfile(target) or os.path.islink(target):
+            os.remove(target)
 
-    if isinstance(package, list):
-        cmd += package
+        print(f"Linking {src} to {target}")
+        os.symlink(src, target)
+
+
+@response("install fonts")
+def install_settings_fonts() -> None:
+    if IS_WINDOWS:
+        target = tempfile.mkdtemp()
+        # target = os.path.join(LOCALAPPDATA_DIR, "Microsoft", "Windows", "Fonts")
+    elif IS_LINUX:
+        target = os.path.join(HOME_DIR, ".local", "share", "fonts")
     else:
-        cmd += [package]
+        raise EnvironmentError("Unsupported OS")
 
-    subprocess.check_call(cmd)
+    url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip"
 
+    print(f"Downloading {url}")
+    fonts_zip, _ = urllib.request.urlretrieve(url)
 
-def update_git() -> None:
-    subprocess.check_call(sudo(["add-apt-repository", "ppa:git-core/ppa", "-y"]))
-    apt_install("git")
+    print(f"Extracting {fonts_zip}")
+    with zipfile.ZipFile(fonts_zip, "r") as zip_ref:
+        zip_ref.extractall(target)
 
+    os.remove(fonts_zip)
 
-def rewrite_apt_sources() -> None:
-    os.environ["NEXUS_USERNAME"] = input_cached("Enter your Nexus username: ")
-    os.environ["NEXUS_PASSWORD"] = input_cached(
-        "Enter your Nexus password: ", pasword=True
-    )
-    subprocess.check_call(
-        sudo([sys.executable, os.path.join(LINUX_DIR, "rewrite_apt_sources.py")])
-    )
-
-
-def set_git_config_key_value(key: str, value: str) -> None:
-    print(f"Configuring git {key}")
-    subprocess.check_call([w("git"), "config", "--global", key, value])
+    if IS_LINUX:
+        apt_install_packages("fontconfig")
+        run(sudo(["fc-cache", "-fv"]))
+    elif IS_WINDOWS:
+        run(["powershell", os.path.join(WINDOWS_DIR, "install_fonts.ps1"), target])
+        shutil.rmtree(target)
 
 
-def set_git_config(email: bool, gpg: bool) -> None:
+@response("install/update oh-my-posh")
+def install_settings_oh_my_posh() -> None:
+    print("Installing oh-my-posh")
+
+    if IS_WINDOWS:
+        winget_install("JanDeDobbeleer.OhMyPosh")
+        posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
+
+    elif IS_LINUX:
+        homebrew_install("jandedobbeleer/oh-my-posh/oh-my-posh")
+        posh_themes = os.path.join(HOME_DIR, ".poshthemes")
+    else:
+        raise ValueError
+
+    os.makedirs(posh_themes, exist_ok=True)
+    shutil.copy(os.path.join(OMP_DIR, "nathanv-me.omp.json"), posh_themes)
+
+
+@response("install Git settings")
+def install_settings_git_config() -> None:
+    email = get_response("set the Git email to your personal address")
+    gpg = get_response("configure Git to use your GPG key")
+
     set_git_config_key_value("user.name", "Nathan Vaughn")
 
     set_git_config_key_value("color.status.added", "green bold")
@@ -260,7 +592,7 @@ def set_git_config(email: bool, gpg: bool) -> None:
             )
 
         elif IS_WSL:
-            apt_install(["gpg", "gnupg2", "socat"])
+            apt_install_packages(["gpg", "gnupg2", "socat"])
 
             set_git_config_key_value(
                 "gpg.program", "/mnt/c/Program Files/Git/usr/bin/gpg.exe"
@@ -270,300 +602,58 @@ def set_git_config(email: bool, gpg: bool) -> None:
                 "pinentry-program /mnt/c/Program Files/Git/usr/bin/pinentry.exe",
             )
 
-            subprocess.check_call([w("gpg-connect-agent"), "reloadagent", "/bye"])
+            run(["gpg-connect-agent", "reloadagent", "/bye"])
 
         elif IS_LINUX:
-            apt_install(["gpg", "gnupg2"])
+            apt_install_packages(["gpg", "gnupg2"])
 
-            set_git_config_key_value("gpg.program", w("gpg"))
-
-
-def install_favorite_apt_packages() -> None:
-    packages = [
-        "software-properties-common",
-        "python-is-python3",
-        "bat",
-        "neofetch",
-        "fontconfig",
-        "net-tools",
-        "iputils-ping",
-    ]
-    apt_install(packages)
+            set_git_config_key_value("gpg.program", which("gpg"))
 
 
-def install_bash_settings() -> None:
-    for file in os.listdir(LINUX_DIR):
-        if not file.startswith("."):
-            continue
-
-        src = os.path.join(LINUX_DIR, file)
-        target = os.path.join(HOME_DIR, file)
-
-        if os.path.isfile(target) or os.path.islink(target):
-            os.remove(target)
-
-        print(f"Linking {src} to {target}")
-        os.symlink(src, target)
-
-
-def install_oh_my_posh() -> None:
-    print("Installing oh-my-posh")
-
-    if IS_WINDOWS:
-        winget_install("JanDeDobbeleer.OhMyPosh")
-        posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
-
-    elif IS_LINUX:
-        subprocess.check_call(
-            [w("brew"), "install", "jandedobbeleer/oh-my-posh/oh-my-posh"]
-        )
-
-        posh_themes = os.path.join(HOME_DIR, ".poshthemes")
-    else:
-        raise ValueError
-
-    os.makedirs(posh_themes, exist_ok=True)
-    shutil.copy(os.path.join(OMP_DIR, "nathanv-me.omp.json"), posh_themes)
-
-
-def install_fonts() -> None:
-    if IS_WINDOWS:
-        target = tempfile.mkdtemp()
-        # target = os.path.join(LOCALAPPDATA_DIR, "Microsoft", "Windows", "Fonts")
-    elif IS_LINUX:
-        target = os.path.join(HOME_DIR, ".local", "share", "fonts")
-    else:
-        raise EnvironmentError("Unsupported OS")
-
-    url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip"
-
-    print(f"Downloading {url}")
-    fonts_zip, _ = urllib.request.urlretrieve(url)
-
-    print(f"Extracting {fonts_zip}")
-    with zipfile.ZipFile(fonts_zip, "r") as zip_ref:
-        zip_ref.extractall(target)
-
-    os.remove(fonts_zip)
-
-    if IS_LINUX:
-        subprocess.check_call(sudo(["fc-cache", "-fv"]))
-    elif IS_WINDOWS:
-        subprocess.check_call(
-            [w("powershell"), os.path.join(WINDOWS_DIR, "install_fonts.ps1"), target]
-        )
-        shutil.rmtree(target)
-
-
-def install_homebrew() -> None:
-    _bash_installer(
-        "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-    )
-
-    apt_install("build-essential")
-    subprocess.check_call([w("brew"), "install", "gcc"])
-
-
-def install_pyenv() -> None:
-    if IS_WINDOWS:
-        # https://github.com/pyenv-win/pyenv-win/blob/master/docs/installation.md#powershell
-        subprocess.check_call(
-            [
-                w("powershell"),
-                "-c",
-                'Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"',
-            ]
-        )
-        os.remove("install-pyenv-win.ps1")
-    elif IS_LINUX:
-        if shutil.which("pyenv"):
-            subprocess.check_call(["pyenv", "update"])
-        else:
-            packages = [
-                "pkg-config",
-                "build-essential",
-                "gdb",
-                "lcov",
-                "libbz2-dev",
-                "libffi-dev",
-                "libgdbm-dev",
-                "libgdbm-compat-dev",
-                "liblzma-dev",
-                "libncurses5-dev",
-                "libreadline6-dev",
-                "libsqlite3-dev",
-                "libssl-dev",
-                "lzma",
-                "lzma-dev",
-                "tk-dev",
-                "uuid-dev",
-                "zlib1g-dev",
-            ]
-            apt_install(packages)
-
-            _bash_installer("https://pyenv.run")
-
-
-def install_docker() -> None:
-    if IS_LINUX:
-        _bash_installer("https://get.docker.com")
-    elif IS_WINDOWS:
-        winget_install("Docker.DockerDesktop")
-
-
-def install_nodejs() -> None:
-    if IS_LINUX:
-        snap_install("node", classic=True)
-    elif IS_WINDOWS:
-        winget_install("OpenJS.NodeJS.LTS")
-
-
-def install_libreoffice() -> None:
-    if IS_LINUX:
-        apt_install("libreoffice")
-    elif IS_WINDOWS:
-        winget_install("TheDocumentFoundation.LibreOffice")
-
-
-def install_discord() -> None:
-    if IS_LINUX:
-        # 403 forbidden
-        # _deb_installer("https://discord.com/api/download?platform=linux&format=deb")
-        snap_install("discord")
-    elif IS_WINDOWS:
-        winget_install("Discord.Discord")
-
-
-def install_spotify() -> None:
-    if IS_LINUX:
-        snap_install("spotify")
-    elif IS_WINDOWS:
-        winget_install("Spotify.Spotify")
-
-
-def install_vscode() -> None:
-    if IS_LINUX:
-        snap_install("code")
-    elif IS_WINDOWS:
-        winget_install("Microsoft.VisualStudioCode")
-
-
-def install_bing_wall() -> None:
+@require_linux
+@response("install Gnome-tweaks and Bing daily wallpaper")
+def install_settings_gnome() -> None:
     snap_install("bing-wall")
-
-
-def install_gnome_tweaks() -> None:
-    apt_install(["gnome-tweaks", "gnome-browser-connector"])
-    print("Remember to open https://extensions.gnome.org/ afterwards")
-
-
-def install_chrome() -> None:
-    if IS_LINUX:
-        _deb_installer(
-            "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-        )
-    elif IS_WINDOWS:
-        winget_install("Google.Chrome")
-
-
-def install_steam() -> None:
-    if IS_LINUX:
-        _deb_installer("https://media.steampowered.com/client/installer/steam.deb")
-    elif IS_WINDOWS:
-        winget_install("Valve.Steam")
-
-
-def get_response(prompt: str, new_line: bool = True) -> bool:
-    full_prompt = f"{BOLD}Would you like to {prompt}? {NC}"
-    val = input(full_prompt).strip().lower()
-    return val.startswith("y")
+    apt_install_packages(["gnome-tweaks", "gnome-browser-connector"])
+    info("Remember to open https://extensions.gnome.org/ afterwards")
 
 
 def main() -> None:
-    if IS_LINUX:
-        if get_response("install Bash settings"):
-            install_bash_settings()
+    # utils
+    install_util_git_update()
 
-        rewrite_apt_sources_bool = get_response("rewrite apt sources")
+    # runtimes
+    install_runtime_nodejs()
+    install_runtime_homebrew()
+    install_runtime_pyenv()
 
-        if rewrite_apt_sources_bool:
-            rewrite_apt_sources()
+    # apps
+    install_app_docker()
+    install_app_chrome()
+    install_app_steam()
+    install_app_spotify()
+    install_app_vscode()
+    install_app_libreoffice()
+    install_app_discord()
 
-        if get_response("install homebrew"):
-            install_homebrew()
+    # settings
+    install_settings_apt_registry()
+    install_settings_favorite_apt_packages()
+    install_settings_pip_registry()
+    install_settings_npm_registry()
+    powershell_profile_installed = install_settings_powershell_profile()
+    install_settings_windows_terminal()
+    bash_profile_installed = install_settings_bash_profile()
+    install_settings_fonts()
+    install_settings_oh_my_posh()
+    install_settings_git_config()
+    install_settings_gnome()
 
-        if get_response("install favorite apt packages"):
-            install_favorite_apt_packages()
-
-        if get_response("update git"):
-            update_git()
-            if rewrite_apt_sources_bool:
-                rewrite_apt_sources()
-
-        if get_response("install Bing wall"):
-            install_bing_wall()
-
-        if get_response("install Gnome tweaks"):
-            install_gnome_tweaks()
-
-    if get_response("configure git"):
-        email = get_response("set git's email to your personal address", new_line=False)
-        gpg = get_response("configure git to use your GPG key", new_line=False)
-        set_git_config(email=email, gpg=gpg)
-
-    if get_response("install fonts"):
-        install_fonts()
-
-    if get_response("install oh-my-posh"):
-        install_oh_my_posh()
-
-    if IS_WINDOWS:
-        if get_response("install your PowerShell profile"):
-            install_powershell_profile()
-
-        if get_response("install Windows Terminal settings"):
-            install_windows_terminal_settings()
-
-    if get_response("install pip settings"):
-        install_pip_settings()
-
-    if get_response("install npm settings"):
-        install_npm_settings()
-
-    if get_response("install pyenv"):
-        install_pyenv()
-
-    if get_response("install Docker"):
-        install_docker()
-
-    if get_response("install NodeJS"):
-        install_nodejs()
-
-    if get_response("install Libreoffice"):
-        install_libreoffice()
-
-    if get_response("install Discord"):
-        install_discord()
-
-    if get_response("install Spotify"):
-        install_spotify()
-
-    if get_response("install VSCode"):
-        install_vscode()
-
-    if get_response("install Chrome"):
-        install_chrome()
-
-    if get_response("install Steam"):
-        install_steam()
-
-    if IS_WINDOWS:
+    if powershell_profile_installed:
+        print(f"Run {BOLD}. $PROFILE{NC} to refresh your PowerShell profile.")
+    if bash_profile_installed:
         print(
-            f"{GREEN}Done.{NC} Run {BOLD}. $PROFILE{NC} to refresh your PowerShell profile."
-        )
-    elif IS_LINUX:
-        print(
-            f"{GREEN}Done.{NC} Run {BOLD}source {HOME_DIR}/.bash_profile{NC} to refresh your Bash profile."
+            f"Run {BOLD}source {HOME_DIR}/.bash_profile{NC} to refresh your Bash profile."
         )
 
 
