@@ -86,6 +86,15 @@ def has_homebrew() -> bool:
     return True if which else os.path.isfile(BREW_PATH)
 
 
+def download_file(url: str) -> str:
+    """
+    Downloads a file and then returns the temp file path.
+    """
+    print(f"Downloading {url}")
+    file, _ = urllib.request.urlretrieve(url)
+    return file
+
+
 def which(program: str) -> str:
     """
     shutil.which, but with an assert to make sure the program was found.
@@ -103,12 +112,17 @@ def sudo(command: List[str]) -> List[str]:
     return ["sudo"] + command
 
 
-def run(command: List[str]) -> None:
+def run(command: List[str], check: bool = True) -> None:
     """
     Runs a command
     """
     cmd = [which(command[0])] + command[1:]
-    subprocess.check_call(cmd)  # type: ignore
+    print(f"\t{' '.join(cmd)}")
+
+    if check:
+        subprocess.check_call(cmd)
+    else:
+        subprocess.run(cmd)
 
 
 def set_git_config_key_value(key: str, value: str) -> None:
@@ -143,7 +157,7 @@ def bash_run_script_from_url(url: str) -> None:
     """
     Run an bash script from a URL
     """
-    installer, _ = urllib.request.urlretrieve(url)
+    installer = download_file(url)
     run(["bash", installer])
     os.remove(installer)
 
@@ -152,16 +166,20 @@ def powershell_run_script_from_url(url: str) -> None:
     """
     Run an powershell script from a URL
     """
-    installer, _ = urllib.request.urlretrieve(url)
-    run(["powershell", installer])
-    os.remove(installer)
+    installer = download_file(url)
+    # powershell needs the file to end in .ps1
+    installer_ps1 = f"{installer}.ps1"
+    os.rename(installer, installer_ps1)
+
+    run(["powershell", installer_ps1])
+    os.remove(installer_ps1)
 
 
 def install_deb_from_url(url: str) -> None:
     """
     Install a .deb file from a URL
     """
-    deb_file, _ = urllib.request.urlretrieve(url)
+    deb_file = download_file(url)
     run(sudo(["dpkg", "-i", deb_file]))
     os.remove(deb_file)
 
@@ -185,7 +203,8 @@ def winget_install(package: str) -> None:
         warn(f"Winget is not installed, skipping install of {package}")
         return
 
-    run(["winget", "install", package])
+    # if a package is already installed, error code will be non zero
+    run(["winget", "install", package], check=False)
 
 
 def snap_install(package: str, classic: bool = False) -> None:
@@ -299,6 +318,13 @@ def install_util_git_update() -> None:
 # =======================================
 
 
+@require_windows
+@response("install Powershell Core and Windows Terminal")
+def install_runtime_powershell_core() -> None:
+    winget_install("9MZ1SNWT0N5D")  # powershell core
+    winget_install("9N0DX20HK701")  # windows terminal
+
+
 @response("install NodeJS and NPM")
 def install_runtime_nodejs() -> None:
     if IS_LINUX:
@@ -388,7 +414,8 @@ def install_app_spotify() -> None:
     if IS_LINUX:
         snap_install("spotify")
     elif IS_WINDOWS:
-        winget_install("Spotify.Spotify")
+        # install from store
+        winget_install("9NCBCSZSJRSB")
 
 
 @response("install VS Code")
@@ -396,7 +423,7 @@ def install_app_vscode() -> None:
     if IS_LINUX:
         snap_install("code")
     elif IS_WINDOWS:
-        winget_install("Microsoft.VisualStudioCode")
+        winget_install("XP9KHM4BK9FZ7Q")
 
 
 @response("install Libreoffice")
@@ -414,7 +441,8 @@ def install_app_discord() -> None:
         # _deb_installer("https://discord.com/api/download?platform=linux&format=deb")
         snap_install("discord")
     elif IS_WINDOWS:
-        winget_install("Discord.Discord")
+        # install from store
+        winget_install("XPDC2RH70K22MN")
 
 
 # settings
@@ -440,6 +468,17 @@ def install_settings_favorite_apt_packages() -> None:
         "iputils-ping",
     ]
     apt_install_packages(packages)
+
+
+@require_windows
+@response("install favorite Winget packages")
+def install_settings_favorite_winget_packages() -> None:
+    packages = [
+        "9NBLGGH516XP",  # ear trumpet
+        "9P7KNL5RWT25",  # sysinternals
+    ]
+    for package in packages:
+        winget_install(package)
 
 
 @response("change the default Pip registry")
@@ -523,10 +562,9 @@ def install_settings_fonts() -> None:
     else:
         raise EnvironmentError("Unsupported OS")
 
-    url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip"
-
-    print(f"Downloading {url}")
-    fonts_zip, _ = urllib.request.urlretrieve(url)
+    fonts_zip = download_file(
+        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip"
+    )
 
     print(f"Extracting {fonts_zip}")
     with zipfile.ZipFile(fonts_zip, "r") as zip_ref:
@@ -544,8 +582,6 @@ def install_settings_fonts() -> None:
 
 @response("install/update oh-my-posh")
 def install_settings_oh_my_posh() -> None:
-    print("Installing oh-my-posh")
-
     if IS_WINDOWS:
         winget_install("JanDeDobbeleer.OhMyPosh")
         posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
@@ -611,11 +647,18 @@ def install_settings_git_config() -> None:
 
 
 @require_linux
-@response("install Gnome-tweaks and Bing daily wallpaper")
-def install_settings_gnome() -> None:
-    snap_install("bing-wall")
+@response("install Gnome-tweaks")
+def install_settings_gnome_tweaks() -> None:
     apt_install_packages(["gnome-tweaks", "gnome-browser-connector"])
     info("Remember to open https://extensions.gnome.org/ afterwards")
+
+
+@response("install Bing daily wallpaper")
+def install_settings_bing_wallpaper() -> None:
+    if IS_WINDOWS:
+        winget_install("9NBLGGH1ZBKW")
+    elif IS_LINUX:
+        snap_install("bing-wall")
 
 
 def main() -> None:
@@ -639,6 +682,7 @@ def main() -> None:
     # settings
     install_settings_apt_registry()
     install_settings_favorite_apt_packages()
+    install_settings_favorite_winget_packages()
     install_settings_pip_registry()
     install_settings_npm_registry()
     powershell_profile_installed = install_settings_powershell_profile()
@@ -647,7 +691,8 @@ def main() -> None:
     install_settings_fonts()
     install_settings_oh_my_posh()
     install_settings_git_config()
-    install_settings_gnome()
+    install_settings_gnome_tweaks()
+    install_settings_bing_wallpaper()
 
     if powershell_profile_installed:
         print(f"Run {BOLD}. $PROFILE{NC} to refresh your PowerShell profile.")
