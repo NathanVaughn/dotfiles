@@ -1,18 +1,14 @@
 import functools
 import getpass
 import os
-import platform
 import shutil
-import subprocess
 import sys
 import tempfile
 import urllib.request
 import zipfile
 from typing import Any, Callable, List, Union
 
-IS_LINUX = os.name == "posix"
-IS_WINDOWS = os.name == "nt"
-IS_WSL = "microsoft-standard" in platform.uname().release
+from utils import IS_LINUX, IS_WINDOWS, IS_WSL, run, which
 
 # our tracking
 APT_UPDATED = False
@@ -95,34 +91,11 @@ def download_file(url: str) -> str:
     return file
 
 
-def which(program: str) -> str:
-    """
-    shutil.which, but with an assert to make sure the program was found.
-    """
-    ret = shutil.which(program)
-    if ret is None:
-        raise FileNotFoundError(f"Could not find {program}")
-    return ret
-
-
 def sudo(command: List[str]) -> List[str]:
     """
     Wraps a list of commands with sudo
     """
     return ["sudo"] + command
-
-
-def run(command: List[str], check: bool = True) -> None:
-    """
-    Runs a command
-    """
-    cmd = [which(command[0])] + command[1:]
-    print(f"\t{' '.join(cmd)}")
-
-    if check:
-        subprocess.check_call(cmd)
-    else:
-        subprocess.run(cmd)
 
 
 def set_git_config_key_value(key: str, value: str) -> None:
