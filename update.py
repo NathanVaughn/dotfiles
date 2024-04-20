@@ -27,7 +27,7 @@ def main():
     if IS_WINDOWS:
         # while sudo exists on Windows, it's not really an .exe
         # or anything, so python doesn't like it.
-        subprocess.run(["winget", "upgrade", "--all"])
+        subprocess.run(["winget", "upgrade", "--all", "--accept-package-agreements"])
 
 
 if __name__ == "__main__":
