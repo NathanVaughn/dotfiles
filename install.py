@@ -199,7 +199,9 @@ def get_response(prompt: str) -> bool:
     return val.startswith("y")
 
 
-def add_line_to_file(filename: str, newline: str) -> None:
+def add_line_to_file(
+    filename: str, newline: str, match_full_line: bool = False
+) -> None:
     """
     Add a new line to a file. If an existing line is found with the same
     starting string, it will be replaced.
@@ -210,7 +212,12 @@ def add_line_to_file(filename: str, newline: str) -> None:
     with open(filename, "r") as fp:
         lines = fp.readlines()
 
-    key = newline.split(" ", maxsplit=1)[0]
+    if match_full_line:
+        # ensure full line is present
+        key = newline
+    else:
+        # ensure something matching the prefix is present
+        key = newline.split(" ", maxsplit=1)[0]
 
     # replace matching line
     found = False
@@ -420,6 +427,32 @@ def install_app_discord() -> None:
 
 # settings
 # =======================================
+@require_linux
+@response("install your SSH key")
+def install_ssh_key() -> None:
+    authorized_keys = os.path.join(HOME_DIR, ".ssh", "authorized_keys")
+    public_key_file = download_file(
+        "https://raw.githubusercontent.com/NathanVaughn/public-keys/main/ssh.pub"
+    )
+
+    # make sure .ssh dir exists
+    os.makedirs(os.path.dirname(authorized_keys), exist_ok=True)
+
+    # read the public key
+    with open(public_key_file, "r") as fp:
+        public_key = fp.read().strip()
+
+    # add the key to the authorized_keys file
+    add_line_to_file(authorized_keys, public_key)
+
+    # delete the temp file
+    os.remove(public_key_file)
+
+    # set permissions
+    run(sudo(["chmod", "700", os.path.dirname(authorized_keys)]))
+    run(sudo(["chmod", "644", authorized_keys]))
+
+
 @require_linux
 @response("change the default apt sources")
 def install_settings_apt_registry() -> None:
@@ -653,6 +686,7 @@ def main() -> None:
     install_app_discord()
 
     # settings
+    install_ssh_key()
     install_settings_apt_registry()
     install_settings_favorite_apt_packages()
     install_settings_favorite_winget_packages()
