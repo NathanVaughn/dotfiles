@@ -672,7 +672,7 @@ def main() -> None:
     install_util_git_update()
 
     # runtimes
-    install_runtime_nodejs()
+    # install_runtime_nodejs()
     install_runtime_homebrew()
     install_runtime_pyenv()
 
