@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import tempfile
+import json
 import urllib.request
 import zipfile
 from typing import Any, Callable, List, Union
@@ -44,6 +45,7 @@ if IS_WINDOWS:
     LOCALAPPDATA_DIR = os.environ["LOCALAPPDATA"]
 
     import ctypes
+    import winreg
     from ctypes.wintypes import MAX_PATH
 
     dll = ctypes.windll.shell32
@@ -666,6 +668,19 @@ def install_settings_bing_wallpaper() -> None:
     elif IS_LINUX:
         snap_install("bing-wall")
 
+
+@response("install Chrome manifest V2 compatibility")
+def install_chrome_manifest_v2() -> None:
+    # https://gist.github.com/velzie/053ffedeaecea1a801a2769ab86ab376
+    if IS_WINDOWS:
+        key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\Policies\\Google\\Chrome")
+        winreg.SetValueEx(key, "ExtensionManifestV2Availability", 0, winreg.REG_DWORD, 0x00000002)
+        winreg.CloseKey(key)
+    elif IS_LINUX:
+        policy_json = os.path.join("/", "etc", "opt", "chrome", "policies", "managed", "policy.json")
+        os.makedirs(os.path.dirname(policy_json), exist_ok=True)
+        with open(policy_json, "w") as fp:
+            json.dump({"ExtensionManifestV2Availability": 2}, fp)
 
 def main() -> None:
     # utils
