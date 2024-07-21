@@ -1,10 +1,10 @@
 import functools
 import getpass
+import json
 import os
 import shutil
 import sys
 import tempfile
-import json
 import urllib.request
 import zipfile
 from typing import Any, Callable, List, Union
@@ -210,9 +210,15 @@ def add_line_to_file(
     """
     newline += "\n"
 
+    # make sure parent directory exists
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+
     # read file
-    with open(filename, "r") as fp:
-        lines = fp.readlines()
+    if os.path.isfile(filename):
+        with open(filename, "r") as fp:
+            lines = fp.readlines()
+    else:
+        lines = []
 
     if match_full_line:
         # ensure full line is present
@@ -326,39 +332,12 @@ def install_runtime_homebrew() -> None:
     run([BREW_PATH, "install", "gcc"])
 
 
-@response("install/update pyenv")
-def install_runtime_pyenv() -> None:
+@response("install/update Python")
+def install_runtime_python() -> None:
     if IS_WINDOWS:
-        # https://github.com/pyenv-win/pyenv-win/blob/master/docs/installation.md#powershell
-        powershell_run_script_from_url(
-            "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1"
-        )
+        winget_install("Python.Python.3.12")
     elif IS_LINUX:
-        if shutil.which("pyenv"):
-            run(["pyenv", "update"])
-        else:
-            packages = [
-                "pkg-config",
-                "build-essential",
-                "gdb",
-                "lcov",
-                "libbz2-dev",
-                "libffi-dev",
-                "libgdbm-dev",
-                "libgdbm-compat-dev",
-                "liblzma-dev",
-                "libncurses5-dev",
-                "libreadline6-dev",
-                "libsqlite3-dev",
-                "libssl-dev",
-                "lzma",
-                "lzma-dev",
-                "tk-dev",
-                "uuid-dev",
-                "zlib1g-dev",
-            ]
-            apt_install_packages(packages)
-            bash_run_script_from_url("https://pyenv.run")
+        apt_install_packages(["python3", "python-is-python3"])
 
 
 # apps
@@ -673,14 +652,21 @@ def install_settings_bing_wallpaper() -> None:
 def install_chrome_manifest_v2() -> None:
     # https://gist.github.com/velzie/053ffedeaecea1a801a2769ab86ab376
     if IS_WINDOWS:
-        key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\Policies\\Google\\Chrome")
-        winreg.SetValueEx(key, "ExtensionManifestV2Availability", 0, winreg.REG_DWORD, 0x00000002)
+        key = winreg.CreateKey(
+            winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\Policies\\Google\\Chrome"
+        )
+        winreg.SetValueEx(
+            key, "ExtensionManifestV2Availability", 0, winreg.REG_DWORD, 0x00000002
+        )
         winreg.CloseKey(key)
     elif IS_LINUX:
-        policy_json = os.path.join("/", "etc", "opt", "chrome", "policies", "managed", "policy.json")
+        policy_json = os.path.join(
+            "/", "etc", "opt", "chrome", "policies", "managed", "policy.json"
+        )
         os.makedirs(os.path.dirname(policy_json), exist_ok=True)
         with open(policy_json, "w") as fp:
             json.dump({"ExtensionManifestV2Availability": 2}, fp)
+
 
 def main() -> None:
     # utils
@@ -689,7 +675,7 @@ def main() -> None:
     # runtimes
     # install_runtime_nodejs()
     install_runtime_homebrew()
-    install_runtime_pyenv()
+    install_runtime_python()
 
     # apps
     install_app_docker()

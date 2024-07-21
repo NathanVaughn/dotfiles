@@ -71,15 +71,6 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-# for pyenv
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-
-if command -v pyenv &> /dev/null
-then
-    eval "$(pyenv init -)"
-fi
-
 # for homebrew
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
