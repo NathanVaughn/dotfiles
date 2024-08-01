@@ -601,7 +601,7 @@ def install_settings_git_config() -> None:
     set_git_config_key_value("credential.helper", "store")
 
     if email:
-        set_git_config_key_value("user.email", "nvaughn51@gmail.com")
+        set_git_config_key_value("user.email", "nath@nvaughn.email")
 
     if gpg:
         set_git_config_key_value(
