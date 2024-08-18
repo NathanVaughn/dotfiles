@@ -577,6 +577,7 @@ def install_settings_oh_my_posh() -> None:
         posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
 
     elif IS_LINUX:
+        apt_install_packages("unzip")
         bash_run_script_from_url(
             "https://ohmyposh.dev/install.sh", args=["-d", "~/.local/bin/"]
         )
