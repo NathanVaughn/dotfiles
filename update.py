@@ -8,13 +8,13 @@ def main():
     if pipx := shutil.which("pipx"):
         subprocess.run([pipx, "upgrade-all"])
 
-    if npm := shutil.which("npm"):
-        if IS_WINDOWS:
-            npm = f"{npm}.cmd"
-        subprocess.run([npm, "update", "-g"])
+    # if npm := shutil.which("npm"):
+    #     if IS_WINDOWS:
+    #         npm = f"{npm}.cmd"
+    #     subprocess.run([npm, "update", "-g"])
 
-    if brew := shutil.which("brew"):
-        subprocess.run([brew, "upgrade"])
+    # if brew := shutil.which("brew"):
+    #     subprocess.run([brew, "upgrade"])
 
     if IS_LINUX:
         if snap := shutil.which("snap"):
