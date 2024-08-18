@@ -71,9 +71,6 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-# for homebrew
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-
 # for oh-my-posh
 export VIRTUAL_ENV_DISABLE_PROMPT=1
-eval "$(/home/linuxbrew/.linuxbrew/opt/oh-my-posh/bin/oh-my-posh --init --shell bash --config ~/.poshthemes/nathanv-me.omp.json)"
+eval "$(~/.local/bin/oh-my-posh --init --shell bash --config ~/.poshthemes/nathanv-me.omp.json)"

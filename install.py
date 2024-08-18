@@ -128,12 +128,15 @@ def apt_install_packages(packages: Union[str, List[str]]) -> None:
     run(cmd)
 
 
-def bash_run_script_from_url(url: str) -> None:
+def bash_run_script_from_url(url: str, args: Union[None, List[str]] = None) -> None:
     """
     Run an bash script from a URL
     """
     installer = download_file(url)
-    run(["bash", installer])
+    cmd = ["bash", installer]
+    if args:
+        cmd += args
+    run(cmd)
     os.remove(installer)
 
 
@@ -574,7 +577,9 @@ def install_settings_oh_my_posh() -> None:
         posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
 
     elif IS_LINUX:
-        homebrew_install("jandedobbeleer/oh-my-posh/oh-my-posh")
+        bash_run_script_from_url(
+            "https://ohmyposh.dev/install.sh", args=["-d", "~/.local/bin/"]
+        )
         posh_themes = os.path.join(HOME_DIR, ".poshthemes")
     else:
         raise ValueError
@@ -674,7 +679,7 @@ def main() -> None:
 
     # runtimes
     # install_runtime_nodejs()
-    install_runtime_homebrew()
+    # install_runtime_homebrew()
     install_runtime_python()
 
     # apps
