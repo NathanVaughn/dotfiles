@@ -31,6 +31,7 @@ def run(command: list[str], check: bool = True) -> None:
     else:
         subprocess.run(cmd)
 
+
 def check_sudo() -> None:
     """
     Checks if the current process is running with administrator privileges, and
@@ -38,6 +39,7 @@ def check_sudo() -> None:
     """
     if IS_WINDOWS:
         import ctypes
+
         if ctypes.windll.shell32.IsUserAnAdmin() == 0:
             return
 
@@ -65,10 +67,7 @@ def check_sudo() -> None:
 
         try:
             sys.exit(
-                subprocess.run(
-                    ["sudo", "-E", sys.executable]
-                    + sys.argv
-                ).returncode
+                subprocess.run(["sudo", "-E", sys.executable] + sys.argv).returncode
             )
         except PermissionError:
             sys.exit(0)

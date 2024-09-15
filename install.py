@@ -149,7 +149,11 @@ def powershell_run_script_from_url(url: str) -> None:
     installer_ps1 = f"{installer}.ps1"
     os.rename(installer, installer_ps1)
 
-    run(["powershell", installer_ps1])
+    pwsh = "powershell"
+    if shutil.which("pwsh"):
+        pwsh = "pwsh"
+
+    run([pwsh, "-ExecutionPolicy", "ByPass", installer_ps1])
     os.remove(installer_ps1)
 
 
@@ -335,12 +339,14 @@ def install_runtime_homebrew() -> None:
     run([BREW_PATH, "install", "gcc"])
 
 
-@response("install/update Python")
-def install_runtime_python() -> None:
-    if IS_WINDOWS:
-        winget_install("Python.Python.3.12")
+@response("install/update uv")
+def install_runtime_uv() -> None:
+    if shutil.which("uv"):
+        run(["uv", "self", "update"])
+    elif IS_WINDOWS:
+        powershell_run_script_from_url("https://astral.sh/uv/install.ps1")
     elif IS_LINUX:
-        apt_install_packages(["python3", "python-is-python3"])
+        bash_run_script_from_url("https://astral.sh/uv/install.sh")
 
 
 # apps
@@ -466,6 +472,9 @@ def install_settings_favorite_winget_packages() -> None:
     packages = [
         "9NBLGGH516XP",  # ear trumpet
         "9P7KNL5RWT25",  # sysinternals
+        "Microsoft.WindowsTerminal",
+        "Notepad++.Notepad++",
+        "7zip.7zip",
     ]
     for package in packages:
         winget_install(package)
@@ -681,7 +690,7 @@ def main() -> None:
     # runtimes
     # install_runtime_nodejs()
     # install_runtime_homebrew()
-    install_runtime_python()
+    install_runtime_uv()
 
     # apps
     install_app_docker()

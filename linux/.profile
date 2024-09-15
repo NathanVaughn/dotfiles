@@ -12,3 +12,4 @@
 
 export PATH=~/bin:$PATH
 export PATH=~/.local/bin:$PATH
+export PATH=~/.cargo/bin:$PATH
