@@ -344,7 +344,7 @@ def install_runtime_uv() -> None:
     if shutil.which("uv"):
         run(["uv", "self", "update"])
     elif IS_WINDOWS:
-        powershell_run_script_from_url("https://astral.sh/uv/install.ps1")
+        winget_install("astral-sh.uv")
     elif IS_LINUX:
         bash_run_script_from_url("https://astral.sh/uv/install.sh")
 
