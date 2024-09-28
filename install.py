@@ -1,3 +1,4 @@
+import argparse
 import functools
 import getpass
 import json
@@ -13,6 +14,7 @@ from utils import IS_LINUX, IS_WINDOWS, IS_WSL, run, which
 
 # our tracking
 APT_UPDATED = False
+UNATTENDED = False
 
 # directories
 HOME_DIR = os.path.expanduser("~")
@@ -264,7 +266,10 @@ def response(prompt: str) -> Callable:
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            if get_response(prompt):
+            if UNATTENDED:
+                return func(*args, **kwargs)
+
+            elif get_response(prompt):
                 func(*args, **kwargs)
                 return True
 
@@ -583,10 +588,12 @@ def install_settings_fonts() -> None:
 def install_settings_oh_my_posh() -> None:
     if IS_WINDOWS:
         winget_install("JanDeDobbeleer.OhMyPosh")
-        posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
+        posh_themes = os.path.join(
+            LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
 
     elif IS_LINUX:
         apt_install_packages("unzip")
+        os.makedirs(os.path.join(HOME_DIR, ".local", "bin"), exist_ok=True)
         bash_run_script_from_url(
             "https://ohmyposh.dev/install.sh", args=["-d", "~/.local/bin/"]
         )
@@ -683,13 +690,21 @@ def install_chrome_manifest_v2() -> None:
             json.dump({"ExtensionManifestV2Availability": 2}, fp)
 
 
-def main() -> None:
+def main(devcontainer: bool = False) -> None:
+    if devcontainer:
+        print("Running in devcontainer mode")
+        global UNATTENDED
+        UNATTENDED = True
+
+        install_settings_bash_profile()
+        install_settings_oh_my_posh()
+        # git settings are already copied in
+        return
+
     # utils
     install_util_git_update()
 
     # runtimes
-    # install_runtime_nodejs()
-    # install_runtime_homebrew()
     install_runtime_uv()
 
     # apps
@@ -721,9 +736,18 @@ def main() -> None:
         print(f"Run {BOLD}. $PROFILE{NC} to refresh your PowerShell profile.")
     if bash_profile_installed:
         print(
-            f"Run {BOLD}source {HOME_DIR}/.bash_profile{NC} to refresh your Bash profile."
+            f"Run {BOLD}source {
+                HOME_DIR}/.bash_profile{NC} to refresh your Bash profile."
         )
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--devcontainer",
+        action="store_true",
+        help="Install dotfiles unattended in a devcontainer",
+    )
+    args = parser.parse_args()
+
+    main(devcontainer=args.devcontainer)
