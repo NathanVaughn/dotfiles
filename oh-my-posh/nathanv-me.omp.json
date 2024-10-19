@@ -112,7 +112,7 @@
                     "foreground": "#ffffff",
                     "properties": {
                         "prefix": "",
-                        "template": "{{ .HostName }}",
+                        "template": "{{if .Env.REMOTE_CONTAINERS}}container{{else}}{{ .HostName }}{{end}}",
                         "postfix": ""
                     }
                 },
