@@ -585,17 +585,21 @@ def install_settings_fonts() -> None:
 
 
 @response("install/update oh-my-posh")
-def install_settings_oh_my_posh() -> None:
+def install_settings_oh_my_posh(install_bin: bool) -> None:
     if IS_WINDOWS:
-        winget_install("JanDeDobbeleer.OhMyPosh")
+        if install_bin:
+            winget_install("JanDeDobbeleer.OhMyPosh")
+
         posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
 
     elif IS_LINUX:
-        apt_install_packages("unzip")
-        os.makedirs(os.path.join(HOME_DIR, ".local", "bin"), exist_ok=True)
-        bash_run_script_from_url(
-            "https://ohmyposh.dev/install.sh", args=["-d", "~/.local/bin/"]
-        )
+        if install_bin:
+            apt_install_packages("unzip")
+            os.makedirs(os.path.join(HOME_DIR, ".local", "bin"), exist_ok=True)
+            bash_run_script_from_url(
+                "https://ohmyposh.dev/install.sh", args=["-d", "~/.local/bin/"]
+            )
+
         posh_themes = os.path.join(HOME_DIR, ".poshthemes")
     else:
         raise ValueError
@@ -696,6 +700,7 @@ def main(devcontainer: bool = False) -> None:
         UNATTENDED = True
 
         install_settings_bash_profile()
+        install_settings_oh_my_posh(install_bin=False)
         # git settings are already copied in
         return
 
@@ -725,7 +730,7 @@ def main(devcontainer: bool = False) -> None:
     install_settings_windows_terminal()
     bash_profile_installed = install_settings_bash_profile()
     install_settings_fonts()
-    install_settings_oh_my_posh()
+    install_settings_oh_my_posh(install_bin=True)
     install_settings_git_config()
     install_settings_gnome_tweaks()
     install_settings_bing_wallpaper()
