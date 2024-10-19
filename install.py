@@ -588,8 +588,7 @@ def install_settings_fonts() -> None:
 def install_settings_oh_my_posh() -> None:
     if IS_WINDOWS:
         winget_install("JanDeDobbeleer.OhMyPosh")
-        posh_themes = os.path.join(
-            LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
+        posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
 
     elif IS_LINUX:
         apt_install_packages("unzip")
@@ -697,7 +696,6 @@ def main(devcontainer: bool = False) -> None:
         UNATTENDED = True
 
         install_settings_bash_profile()
-        install_settings_oh_my_posh()
         # git settings are already copied in
         return
 
