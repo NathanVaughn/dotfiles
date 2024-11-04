@@ -73,4 +73,4 @@ fi
 
 # for oh-my-posh
 export VIRTUAL_ENV_DISABLE_PROMPT=1
-eval "$(oh-my-posh --init --shell bash --config ~/.poshthemes/nathanv-me.omp.json)"
+eval "$(oh-my-posh init bash --config ~/.poshthemes/nathanv-me.omp.json)"
