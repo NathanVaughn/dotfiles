@@ -6,7 +6,7 @@ New-Alias clc clear
 New-Alias ll ls
 
 function guid { [guid]::NewGuid().ToString() }
-function venv { python -m venv .venv }
+function venv { uv run python -m venv .venv }
 function rm-rf { Remove-Item -Recurse -Force $args }
 function sudo { Start-Process powershell -Verb runAs $args }
 

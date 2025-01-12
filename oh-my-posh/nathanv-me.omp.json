@@ -51,24 +51,7 @@
                 }
             ]
         },
-        {
-            "type": "prompt",
-            "alignment": "right",
-            "segments": [
-                {
-                    "type": "python",
-                    "style": "diamond",
-                    "leading_diamond": "\uE0B6",
-                    "trailing_diamond": "\uE0B4",
-                    "foreground": "#FFE873",
-                    "background": "#306998",
-                    "template": "\uE235 {{ .Full }}",
-                    "properties": {
-                        "display_mode": "environment"
-                    }
-                }
-            ]
-        },
+
         {
             "type": "prompt",
             "alignment": "left",
@@ -102,7 +85,19 @@
                     "type": "session",
                     "style": "plain",
                     "foreground": "#ffffff",
-                    "template": "{{if .Env.REMOTE_CONTAINERS}}container{{else}}{{ .HostName }}{{end}} "
+                    "template": "{{if .Env.REMOTE_CONTAINERS}}container{{else}}{{ .HostName }}{{end}}"
+                },
+                {
+                    "type": "python",
+                    "style": "diamond",
+                    "leading_diamond": " \uE0B6",
+                    "trailing_diamond": "\uE0B4",
+                    "foreground": "#FFE873",
+                    "background": "#306998",
+                    "template": "\uE235 {{ .Full }}",
+                    "properties": {
+                        "display_mode": "environment"
+                    }
                 },
                 {
                     "type": "status",
@@ -111,7 +106,7 @@
                     "foreground_templates": [
                         "{{ if gt .Code 0 }}#F1184C{{ end }}"
                     ],
-                    "template": ">>",
+                    "template": " >>",
                     "properties": {
                         "always_enabled": true
                     }
