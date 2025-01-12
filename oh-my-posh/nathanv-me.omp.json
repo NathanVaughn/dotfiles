@@ -29,10 +29,22 @@
                     }
                 },
                 {
+                    "type": "python",
+                    "style": "diamond",
+                    "leading_diamond": "\uE0B6",
+                    "trailing_diamond": "\uE0B4 ",
+                    "foreground": "#FFE873",
+                    "background": "#306998",
+                    "template": "\uE235 {{ .Full }}",
+                    "properties": {
+                        "display_mode": "environment"
+                    }
+                },
+                {
                     "type": "git",
                     "style": "plain",
                     "foreground": "#3A86FF",
-                    "template": "{{ .HEAD }}{{ if .Staging.Changed }} \uF046 {{ .Staging.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Working.Changed }} \uF044 {{ .Working.String }}{{ end }}{{ if gt .StashCount 0 }} \uF692 {{ .StashCount }}{{ end }} ",
+                    "template": "{{ .HEAD }}{{ if .Staging.Changed }} \uF046 {{ .Staging.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Working.Changed }} \uF044 {{ .Working.String }}{{ end }}{{ if gt .StashCount 0 }} \uF692 {{ .StashCount }}{{ end }}",
                     "properties": {
                         "fetch_status": true,
                         "fetch_stash_count": true,
@@ -43,7 +55,7 @@
                     "type": "executiontime",
                     "style": "plain",
                     "foreground": "#9e64c2",
-                    "template": "\uF017 {{ .FormattedMs }}",
+                    "template": " \uF017 {{ .FormattedMs }}",
                     "properties": {
                         "threshold": 1,
                         "style": "austin"
@@ -86,18 +98,6 @@
                     "style": "plain",
                     "foreground": "#ffffff",
                     "template": "{{if .Env.REMOTE_CONTAINERS}}container{{else}}{{ .HostName }}{{end}}"
-                },
-                {
-                    "type": "python",
-                    "style": "diamond",
-                    "leading_diamond": " \uE0B6",
-                    "trailing_diamond": "\uE0B4",
-                    "foreground": "#FFE873",
-                    "background": "#306998",
-                    "template": "\uE235 {{ .Full }}",
-                    "properties": {
-                        "display_mode": "environment"
-                    }
                 },
                 {
                     "type": "status",
