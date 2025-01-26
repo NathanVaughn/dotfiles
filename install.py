@@ -721,11 +721,11 @@ def main(devcontainer: bool = False) -> None:
 
     # settings
     install_ssh_key()
-    install_settings_apt_registry()
+    # install_settings_apt_registry()
     install_settings_favorite_apt_packages()
     install_settings_favorite_winget_packages()
-    install_settings_pip_registry()
-    install_settings_npm_registry()
+    # install_settings_pip_registry()
+    # install_settings_npm_registry()
     powershell_profile_installed = install_settings_powershell_profile()
     install_settings_windows_terminal()
     bash_profile_installed = install_settings_bash_profile()
@@ -739,8 +739,7 @@ def main(devcontainer: bool = False) -> None:
         print(f"Run {BOLD}. $PROFILE{NC} to refresh your PowerShell profile.")
     if bash_profile_installed:
         print(
-            f"Run {BOLD}source {
-                HOME_DIR}/.bash_profile{NC} to refresh your Bash profile."
+            f"Run {BOLD}source {HOME_DIR}/.bash_profile{NC} to refresh your Bash profile."
         )
 
 
