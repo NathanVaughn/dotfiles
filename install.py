@@ -629,6 +629,8 @@ def install_settings_git_config() -> None:
         set_git_config_key_value("user.email", "nath@nvaughn.email")
 
     if gpg:
+        gpg_config = os.path.join(HOME_DIR, ".gnupg", "gpg-agent.conf")
+
         set_git_config_key_value(
             "user.signingkey", "958AB43C3CBC4E7EBBC1979769893C308784B59B"
         )
@@ -646,7 +648,7 @@ def install_settings_git_config() -> None:
                 "gpg.program", "/mnt/c/Program Files/Git/usr/bin/gpg.exe"
             )
             add_line_to_file(
-                os.path.join(HOME_DIR, ".gnupg", "gpg-agent.conf"),
+                gpg_config,
                 "pinentry-program /mnt/c/Program Files/Git/usr/bin/pinentry.exe",
             )
 
@@ -656,6 +658,10 @@ def install_settings_git_config() -> None:
             apt_install_packages(["gpg", "gnupg2"])
 
             set_git_config_key_value("gpg.program", which("gpg"))
+
+        # increase timeout
+        add_line_to_file(gpg_config, "default-cache-ttl 86400")
+        add_line_to_file(gpg_config, "max-cache-ttl 86400")
 
 
 @require_linux
