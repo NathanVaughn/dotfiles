@@ -19,6 +19,7 @@ alias ipconfig='ifconfig'
 alias activate='source ./.venv/bin/activate'
 alias venv='python -m venv .venv'
 alias guid='cat /proc/sys/kernel/random/uuid'
+alias uuid='cat /proc/sys/kernel/random/uuid'
 
 alias please='sudo'
 alias ugh='sudo $(history -p !!)'

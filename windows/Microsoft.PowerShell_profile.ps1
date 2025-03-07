@@ -5,6 +5,7 @@ New-Alias ifconfig ipconfig
 New-Alias clc clear
 New-Alias ll ls
 
+function uuid { [guid]::NewGuid().ToString() }
 function guid { [guid]::NewGuid().ToString() }
 function venv { uv run python -m venv .venv }
 function rm-rf { Remove-Item -Recurse -Force $args }
