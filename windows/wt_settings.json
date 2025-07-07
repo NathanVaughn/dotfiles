@@ -9,15 +9,15 @@
                 "action": "copy",
                 "singleLine": false
             },
-            "keys": "ctrl+c"
+            "id": "User.copy.644BA8F2"
         },
         {
             "command": "paste",
-            "keys": "ctrl+v"
+            "id": "User.paste"
         },
         {
             "command": "find",
-            "keys": "ctrl+shift+f"
+            "id": "User.find"
         },
         {
             "command":
@@ -26,7 +26,7 @@
                 "split": "auto",
                 "splitMode": "duplicate"
             },
-            "keys": "alt+shift+d"
+            "id": "User.splitPane.A6751878"
         }
     ],
     "copyFormatting": "none",
@@ -55,7 +55,7 @@
                 "guid": "{9d8213d1-d8e7-4832-9bfb-d45b08920ffd}",
                 "commandline": "ubuntu2404.exe",
                 "hidden": false,
-                "icon": "https://assets.ubuntu.com/v1/49a1a858-favicon-32x32.png",
+                "icon": "ms-appx:///ProfileIcons/{9acb9455-ca41-5af7-950f-6bca1bc9722f}.png",
                 "name": "Ubuntu"
             },
             {
