@@ -71,6 +71,9 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
+# for fnm if it exists
+command -v fnm &> /dev/null && eval "$(fnm env --use-on-cd --shell bash)"
+
 # for oh-my-posh
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 eval "$(oh-my-posh init bash --config ~/.poshthemes/nathanv-me.omp.json)"
