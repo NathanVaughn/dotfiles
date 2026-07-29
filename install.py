@@ -8,7 +8,8 @@ import sys
 import tempfile
 import urllib.request
 import zipfile
-from typing import Any, Callable, List, Union
+from collections.abc import Callable
+from typing import Any
 
 from utils import IS_LINUX, IS_WINDOWS, IS_WSL, run, which
 
@@ -45,6 +46,7 @@ if IS_LINUX and os.geteuid() == 0:
 if IS_WINDOWS:
     APPDATA_DIR = os.environ["APPDATA"]
     LOCALAPPDATA_DIR = os.environ["LOCALAPPDATA"]
+    PROGRAMFILES86_DIR = os.environ["PROGRAMFILES(X86)"]
 
     import ctypes
     import winreg
@@ -95,7 +97,7 @@ def download_file(url: str) -> str:
     return file
 
 
-def sudo(command: List[str]) -> List[str]:
+def sudo(command: list[str]) -> list[str]:
     """
     Wraps a list of commands with sudo
     """
@@ -110,7 +112,7 @@ def set_git_config_key_value(key: str, value: str) -> None:
     run(["git", "config", "--global", key, value])
 
 
-def apt_install_packages(packages: Union[str, List[str]]) -> None:
+def apt_install_packages(packages: str | list[str]) -> None:
     """
     Install one or more apt packages
     """
@@ -130,7 +132,7 @@ def apt_install_packages(packages: Union[str, List[str]]) -> None:
     run(cmd)
 
 
-def bash_run_script_from_url(url: str, args: Union[None, List[str]] = None) -> None:
+def bash_run_script_from_url(url: str, args: None | list[str] = None) -> None:
     """
     Run an bash script from a URL
     """
@@ -494,7 +496,7 @@ def install_settings_pip_registry() -> None:
     elif IS_WINDOWS:
         target = os.path.join(APPDATA_DIR, "pip", "pip.ini")
     else:
-        raise EnvironmentError("Unsupported OS")
+        raise OSError("Unsupported OS")
 
     os.makedirs(os.path.dirname(target), exist_ok=True)
     shutil.copy(src, target)
@@ -564,7 +566,7 @@ def install_settings_fonts() -> None:
     elif IS_LINUX:
         target = os.path.join(HOME_DIR, ".local", "share", "fonts")
     else:
-        raise EnvironmentError("Unsupported OS")
+        raise OSError("Unsupported OS")
 
     fonts_zip = download_file(
         "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip"
@@ -590,7 +592,7 @@ def install_settings_oh_my_posh(install_bin: bool) -> None:
         if install_bin:
             winget_install("JanDeDobbeleer.OhMyPosh")
 
-        posh_themes = os.path.join(LOCALAPPDATA_DIR, "Programs", "oh-my-posh", "themes")
+        posh_themes = os.path.join(PROGRAMFILES86_DIR, "oh-my-posh", "themes")
 
     elif IS_LINUX:
         if install_bin:

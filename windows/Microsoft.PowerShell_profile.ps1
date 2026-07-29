@@ -17,4 +17,4 @@ $env:VIRTUAL_ENV_DISABLE_PROMPT=1
 # disable Az.Accounts powershell module to speed things up
 $env:AZ_ENABLED=$false
 
-~\AppData\Local\Programs\oh-my-posh\bin\oh-my-posh.exe init pwsh --config $HOME\AppData\Local\Programs\oh-my-posh\themes\nathanv-me.omp.json | Invoke-Expression
+oh-my-posh init pwsh --config "${env:ProgramFiles(x86)}\oh-my-posh\themes\nathanv-me.omp.json" | Invoke-Expression
