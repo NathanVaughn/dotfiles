@@ -455,7 +455,7 @@ def install_settings_favorite_apt_packages() -> None:
     packages = [
         "python-is-python3",
         "bat",
-        "neofetch",
+        "fastfetch",
         "net-tools",
         "iputils-ping",
     ]
