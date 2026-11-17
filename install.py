@@ -92,8 +92,14 @@ def download_file(url: str) -> str:
     Downloads a file and then returns the temp file path.
     """
     print(f"Downloading {url}")
-    file, _ = urllib.request.urlretrieve(url)
-    return file
+    # some hosts (e.g. releases.astral.sh) block the default Python-urllib user agent
+    request = urllib.request.Request(url, headers={"User-Agent": "curl/8.0"})
+    with (
+        urllib.request.urlopen(request) as response,
+        tempfile.NamedTemporaryFile(delete=False) as f,
+    ):
+        shutil.copyfileobj(response, f)
+        return f.name
 
 
 def sudo(command: list[str]) -> list[str]:

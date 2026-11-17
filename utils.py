@@ -29,7 +29,7 @@ def run(command: list[str], check: bool = True) -> None:
     if check:
         subprocess.check_call(cmd)
     else:
-        subprocess.run(cmd)
+        subprocess.run(cmd, check=False)
 
 
 def check_sudo() -> None:
@@ -50,7 +50,8 @@ def check_sudo() -> None:
             sys.exit(
                 subprocess.run(
                     ["runas", "/noprofile", "/user:Administrator", sys.executable]
-                    + sys.argv
+                    + sys.argv,
+                    check=False,
                 ).returncode
             )
         except PermissionError:
@@ -67,7 +68,9 @@ def check_sudo() -> None:
 
         try:
             sys.exit(
-                subprocess.run(["sudo", "-E", sys.executable] + sys.argv).returncode
+                subprocess.run(
+                    ["sudo", "-E", sys.executable] + sys.argv, check=False
+                ).returncode
             )
         except PermissionError:
             sys.exit(0)

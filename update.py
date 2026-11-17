@@ -6,7 +6,7 @@ from utils import IS_LINUX, IS_WINDOWS
 
 def main():
     if pipx := shutil.which("pipx"):
-        subprocess.run([pipx, "upgrade-all"])
+        subprocess.run([pipx, "upgrade-all"], check=False)
 
     # if npm := shutil.which("npm"):
     #     if IS_WINDOWS:
@@ -18,16 +18,18 @@ def main():
 
     if IS_LINUX:
         if snap := shutil.which("snap"):
-            subprocess.run(["sudo", snap, "refresh"])
+            subprocess.run(["sudo", snap, "refresh"], check=False)
 
-        subprocess.run(["sudo", "apt", "update", "-y"])
-        subprocess.run(["sudo", "apt", "upgrade", "-y"])
-        subprocess.run(["sudo", "apt", "autoremove", "-y"])
+        subprocess.run(["sudo", "apt", "update", "-y"], check=False)
+        subprocess.run(["sudo", "apt", "upgrade", "-y"], check=False)
+        subprocess.run(["sudo", "apt", "autoremove", "-y"], check=False)
 
     if IS_WINDOWS:
         # while sudo exists on Windows, it's not really an .exe
         # or anything, so python doesn't like it.
-        subprocess.run(["winget", "upgrade", "--all", "--accept-package-agreements"])
+        subprocess.run(
+            ["winget", "upgrade", "--all", "--accept-package-agreements"], check=False
+        )
 
 
 if __name__ == "__main__":
