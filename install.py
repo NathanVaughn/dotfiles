@@ -1,6 +1,5 @@
 import argparse
 import functools
-import getpass
 import json
 import os
 import shutil
@@ -451,16 +450,6 @@ def install_ssh_key() -> None:
 
 
 @require_linux
-@response("change the default apt sources")
-def install_settings_apt_registry() -> None:
-    os.environ["NEXUS_USERNAME"] = input("Enter your Nexus username: ")
-    os.environ["NEXUS_PASSWORD"] = getpass.getpass(
-        "Enter your Nexus password: ",
-    )
-    run(sudo([sys.executable, os.path.join(LINUX_DIR, "rewrite_apt_sources.py")]))
-
-
-@require_linux
 @response("install favorite apt packages")
 def install_settings_favorite_apt_packages() -> None:
     packages = [
@@ -729,7 +718,6 @@ def main(devcontainer: bool = False) -> None:
 
     # settings
     install_ssh_key()
-    # install_settings_apt_registry()
     install_settings_favorite_apt_packages()
     install_settings_favorite_winget_packages()
     # install_settings_pip_registry()
